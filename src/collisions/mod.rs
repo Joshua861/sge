@@ -1,4 +1,5 @@
 use bevy_math::Vec2;
+use glium::winit::event::MouseButton;
 
 pub mod ray;
 
@@ -26,6 +27,10 @@ pub struct Polygon {
 #[derive(Debug, Clone, Copy)]
 pub struct Point {
     pub position: Vec2,
+}
+
+pub fn point(p: Vec2) -> Point {
+    Point { position: p }
 }
 
 impl Point {
@@ -78,6 +83,25 @@ impl AABB2D {
         );
 
         self.intersects(&view_bounds)
+    }
+
+    pub fn is_mouse_over(&self) -> bool {
+        if let Some(c) = cursor() {
+            let point = point(c).bounds();
+            if self.intersects(&point) {
+                return true;
+            }
+        }
+
+        false
+    }
+
+    pub fn is_mouse_held_on(&self, mouse_button: MouseButton) -> bool {
+        self.is_mouse_over() && mouse_held(mouse_button)
+    }
+
+    pub fn is_mouse_clicked_on(&self, mouse_button: MouseButton) -> bool {
+        self.is_mouse_over() && mouse_pressed(mouse_button)
     }
 }
 
@@ -443,7 +467,9 @@ fn on_segment(p: Vec2, q: Vec2, r: Vec2) -> bool {
 
 use crate::{
     api::{window_height, window_width},
-    get_state, shapes_2d,
+    get_state,
+    input::{cursor, mouse_held, mouse_pressed},
+    shapes_2d,
 };
 
 pub trait ToCollider<T> {
@@ -496,6 +522,10 @@ pub fn rect(x: f32, y: f32, w: f32, h: f32) -> AABB2D {
         min,
         max: min + size,
     }
+}
+
+pub fn rect_from_min_max(min: Vec2, max: Vec2) -> AABB2D {
+    AABB2D { min, max }
 }
 
 pub fn square(x: f32, y: f32, size: f32) -> Square {

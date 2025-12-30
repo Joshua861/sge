@@ -18,6 +18,7 @@ pub struct Camera2D {
     inverse_view_matrix: Mat3,
     projection_matrix: Mat4,
     needs_update: bool,
+    visible_bounds: (Vec2, Vec2),
 }
 
 #[derive(Clone, Debug, Copy)]
@@ -57,6 +58,7 @@ impl Camera2D {
             view_matrix: Mat3::IDENTITY,
             inverse_view_matrix: Mat3::IDENTITY,
             projection_matrix: Mat4::IDENTITY,
+            visible_bounds: (Vec2::ZERO, Vec2::ZERO),
             needs_update: true,
         };
         camera.update_matrices();
@@ -82,16 +84,17 @@ impl Camera2D {
             return;
         }
 
+        self.needs_update = false;
+
         let translation_matrix = Mat3::from_translation(-self.translation);
         let rotation_matrix = Mat3::from_angle(-self.rotation);
         let scale_matrix = Mat3::from_scale(Vec2::splat(self.scale));
 
         self.view_matrix = scale_matrix * rotation_matrix * translation_matrix;
         self.inverse_view_matrix = self.view_matrix.inverse();
-
         self.projection_matrix = self.generate_projection_matrix();
 
-        self.needs_update = false;
+        self.visible_bounds = self.calculate_visible_bounds();
     }
 
     fn screen_center(&self) -> Vec2 {
@@ -123,6 +126,10 @@ impl Camera2D {
     pub fn visible_bounds(&mut self) -> (Vec2, Vec2) {
         self.update_matrices();
 
+        self.visible_bounds
+    }
+
+    fn calculate_visible_bounds(&mut self) -> (Vec2, Vec2) {
         let top_left = self.screen_to_world(Vec2::ZERO);
         let top_right = self.screen_to_world(Vec2::new(self.window_size.x, 0.0));
         let bottom_left = self.screen_to_world(Vec2::new(0.0, self.window_size.y));

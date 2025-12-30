@@ -73,7 +73,7 @@ fn main() -> anyhow::Result<()> {
         for i in 0..3 {
             let radius = 20.0 + i as f32 * 15.0;
             let hue = i as f32 * 120.0;
-            let color = Color::hsl(hue, 0.7, 0.5);
+            let color = Color::from_hsl(hue, 0.7, 0.5);
             draw_circle_outline(Vec2::new(400.0, 400.0), radius, color, 3.0);
         }
 

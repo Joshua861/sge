@@ -103,7 +103,6 @@ fn spawn_object(
 fn main() -> anyhow::Result<()> {
     init("Physics Showcase")?;
 
-    let mut cursor_pos = Vec2::ZERO;
     let mut world = PhysicsWorld::new().with_custom_gravity(Vec2::new(0.0, 1000.0));
     let mut objects: Vec<(physics::RigidBodyHandle, physics::ColliderHandle, ShapeType)> =
         Vec::new();
@@ -124,10 +123,7 @@ fn main() -> anyhow::Result<()> {
 
     loop {
         clear_screen(Color::NEUTRAL_900);
-
-        if let Some((x, y)) = cursor() {
-            cursor_pos = Vec2::new(x, y);
-        }
+        let cursor_pos = cursor_pos();
 
         if key_pressed(KeyCode::KeyD) {
             show_debug_info();

@@ -1,23 +1,27 @@
 use std::any::Any;
 
+#[cfg(feature = "debugging")]
+use crate::prelude::avg_fps;
 use crate::utils::EngineCreate;
 use crate::{
     camera::Camera3D,
     collisions::AABB2D,
     post_processing::PostProcessingEffect,
-    prelude::{FontRef, Transform2D, avg_fps, draw_text},
+    prelude::{FontRef, Transform2D, draw_text},
     render_pipeline::{RenderTexture, RenderTextureRef},
     shapes_2d::*,
     textures::EngineTexture,
 };
 use bevy_math::{UVec2, Vec2};
 use egui_glium::egui_winit::egui::Context;
+#[cfg(feature = "gamepad")]
 use gilrs_input_helper::GilrsInputHelper;
 use glium::{
     Texture2d,
     texture::DepthTexture2d,
     uniforms::{MagnifySamplerFilter, MinifySamplerFilter},
 };
+use log::LevelFilter;
 use rand::{
     Rng,
     distr::{
@@ -222,6 +226,7 @@ pub fn run_ui(mut f: impl FnMut(&Context)) {
     let state = get_state();
     state.gui_initialized = true;
     state.gui.run(&state.window, |ctx| {
+        #[cfg(feature = "debugging")]
         state.debug_info.draw_debug_info(ctx);
 
         f(ctx);
@@ -367,7 +372,7 @@ pub(crate) fn debugger_add_vertices(vertices: usize) {
 
 #[cfg(not(feature = "debugging"))]
 #[inline]
-pub(crate) fn debugger_add_vertices(vertices: usize) {}
+pub(crate) fn debugger_add_vertices(_vertices: usize) {}
 
 #[cfg(feature = "debugging")]
 #[inline]
@@ -378,8 +383,8 @@ pub(crate) fn debugger_add_indices(indices: usize) {
 }
 
 #[cfg(not(feature = "debugging"))]
-#[inline_always]
-pub(crate) fn debugger_add_indices(indices: usize) {}
+#[inline]
+pub(crate) fn debugger_add_indices(_indices: usize) {}
 
 #[cfg(feature = "debugging")]
 #[inline]
@@ -390,8 +395,8 @@ pub(crate) fn debugger_add_draw_calls(count: usize) {
 }
 
 #[cfg(not(feature = "debugging"))]
-#[inline_always]
-pub(crate) fn debugger_add_draw_calls(count: usize) {}
+#[inline]
+pub(crate) fn debugger_add_draw_calls(_count: usize) {}
 
 #[cfg(feature = "debugging")]
 #[inline]
@@ -402,8 +407,8 @@ pub(crate) fn debugger_add_drawn_objects(count: usize) {
 }
 
 #[cfg(not(feature = "debugging"))]
-#[inline_always]
-pub(crate) fn debugger_add_drawn_object(count: usize) {}
+#[inline]
+pub(crate) fn debugger_add_drawn_objects(_count: usize) {}
 
 pub fn time() -> f32 {
     get_state().time
@@ -530,6 +535,22 @@ pub fn physics_time() -> f32 {
     get_state().physics_time
 }
 
+pub fn physics_delta_time() -> f32 {
+    get_state().physics_delta_time
+}
+
+pub fn physics_speed() -> f32 {
+    get_state().physics_speed
+}
+
+pub fn physics_speed_mut() -> &'static mut f32 {
+    &mut get_state().physics_speed
+}
+
+pub fn set_physics_speed(physics_speed: f32) {
+    get_state().physics_speed = physics_speed;
+}
+
 pub fn pause_physics_timer() {
     get_state().is_physics_time_paused = true;
 }
@@ -551,6 +572,7 @@ pub fn is_physics_time_paused_mut() -> &'static mut bool {
     &mut get_state().is_physics_time_paused
 }
 
+#[cfg(feature = "debugging")]
 pub fn draw_fps() {
     draw_text(format!("{:.1}", avg_fps()), Vec2::new(10.0, 5.0));
 }
@@ -587,6 +609,7 @@ pub fn min_window_dimension() -> f32 {
     window_height().min(window_width())
 }
 
+#[cfg(feature = "gamepad")]
 pub fn gamepad_input() -> &'static GilrsInputHelper {
     &get_state().input.gamepad
 }

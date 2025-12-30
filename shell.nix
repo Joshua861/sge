@@ -47,7 +47,7 @@ pkgs.mkShell {
     alsa-utils
     alsa-tools
     alsa-oss
-    linuxKernel.packages.linux_6_15.perf
+    perf
   ];
   # Environment variables
   RUST_LOG = "debug";

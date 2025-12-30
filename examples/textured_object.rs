@@ -1,7 +1,5 @@
 use engine_4::prelude::*;
 
-const GRID_SIZE: usize = 50;
-
 fn main() -> anyhow::Result<()> {
     init("3D?")?;
 

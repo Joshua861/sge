@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
-use crate::api::{debugger_add_drawn_objects, draw_texture};
-use crate::prelude::{Sprite, Transform2D, draw_shape};
+use crate::api::debugger_add_drawn_objects;
+use crate::prelude::{Transform2D, draw_shape};
 use crate::programs::{CIRCLE_PROGRAM, FLAT_PROGRAM, TEXTURED_PROGRAM};
 use crate::shapes_2d::{QUAD_INDICES, Shape2D, UNIT_QUAD};
 use crate::textures::TextureRef;
@@ -277,6 +277,24 @@ impl DrawQueue2D {
     ) {
         self.add_sprite_at_z(texture, transform, color, region, self.current_z);
         self.current_z += self.z_increment;
+    }
+
+    pub fn add_mesh(&mut self, vertices: &[Vertex2D], indices: &[u32]) {
+        self.add_mesh_at_z(vertices, indices, self.current_z);
+        self.current_z += self.z_increment;
+    }
+
+    pub fn add_mesh_at_z(&mut self, vertices: &[Vertex2D], indices: &[u32], z: f32) {
+        let base_index = self.current_max_index;
+
+        for v in vertices {
+            self.shape_vertices.push(v.to_3d(z));
+        }
+
+        self.shape_indices
+            .extend(indices.iter().map(|i| i + base_index));
+
+        self.current_max_index += vertices.len() as u32;
     }
 
     pub fn add_sprite_at_z(

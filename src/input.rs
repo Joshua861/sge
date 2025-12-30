@@ -1,4 +1,4 @@
-use bevy_math::UVec2;
+use bevy_math::{UVec2, Vec2, vec2};
 #[cfg(feature = "gamepad")]
 use gilrs_input_helper::GilrsInputHelper;
 use glium::winit;
@@ -10,6 +10,8 @@ use std::{
 use winit::event::MouseButton;
 use winit::keyboard::{Key, KeyCode};
 use winit_input_helper::WinitInputHelper;
+
+pub mod keys;
 
 use crate::get_state;
 
@@ -87,7 +89,7 @@ impl Input {
             helper: WinitInputHelper::new(),
             action_map: HashMap::new(),
             #[cfg(feature = "gamepad")]
-            gamepad: GilrsInputHelper::new().unwrap(),
+            gamepad: GilrsInputHelper::new(),
         }
     }
 
@@ -192,6 +194,13 @@ pub fn key_pressed(keycode: KeyCode) -> bool {
     get_state().input.key_pressed(keycode)
 }
 
+pub fn button_pressed(button: Button) -> bool {
+    match button {
+        Button::Keyboard(key) => key_held(key),
+        Button::Mouse(button) => mouse_held(button),
+    }
+}
+
 /// Returns true when the key with the specified keycode goes from "not pressed" to "pressed".
 /// Otherwise returns false.
 ///
@@ -211,12 +220,26 @@ pub fn key_released(keycode: KeyCode) -> bool {
     get_state().input.key_released(keycode)
 }
 
+pub fn button_released(button: Button) -> bool {
+    match button {
+        Button::Keyboard(key) => key_released(key),
+        Button::Mouse(button) => mouse_released(button),
+    }
+}
+
 /// Returns true when the key with the specified keycode remains "pressed".
 /// Otherwise returns false.
 ///
 /// Uses physical keys in the US layout.
 pub fn key_held(keycode: KeyCode) -> bool {
     get_state().input.key_held(keycode)
+}
+
+pub fn button_held(button: Button) -> bool {
+    match button {
+        Button::Keyboard(key) => key_held(key),
+        Button::Mouse(button) => mouse_held(button),
+    }
 }
 
 /// Returns true while any shift key is held on the keyboard.
@@ -294,29 +317,29 @@ pub fn mouse_held(mouse_button: MouseButton) -> bool {
 /// Returns (horizontally, vertically).
 ///
 /// Returns (0.0, 0.0) when the window is not focused.
-pub fn scroll_diff() -> (f32, f32) {
-    get_state().input.scroll_diff()
+pub fn scroll_diff() -> Vec2 {
+    get_state().input.scroll_diff().into()
 }
 
 /// Returns the cursor coordinates in pixels, when window is focused AND
 /// (cursor is on window OR any mouse button remains held while cursor moved off window).
 /// Otherwise returns None.
-pub fn cursor() -> Option<(f32, f32)> {
-    get_state().input.cursor()
+pub fn cursor() -> Option<Vec2> {
+    get_state().input.cursor().map(|c| vec2(c.0, c.1))
 }
 
 /// Returns the change in cursor coordinates that occurred during the last step,
 /// when window is focused AND (cursor is on window OR any mouse button remains held
 /// while cursor moved off window). Otherwise returns (0.0, 0.0).
-pub fn cursor_diff() -> (f32, f32) {
-    get_state().input.cursor_diff()
+pub fn cursor_diff() -> Vec2 {
+    get_state().input.cursor_diff().into()
 }
 
 /// Returns the change in mouse coordinates that occurred during the last step.
 ///
 /// This is useful when implementing first person controls with a captured mouse.
-pub fn mouse_diff() -> (f32, f32) {
-    get_state().input.mouse_diff()
+pub fn mouse_diff() -> Vec2 {
+    get_state().input.mouse_diff().into()
 }
 
 /// Returns the characters pressed during the last step.
@@ -459,4 +482,15 @@ pub fn get_binding(action: Action) -> Option<&'static Button> {
 /// Get a map of all the bindings that have been registered with the engine.
 pub fn get_all_binds() -> &'static HashMap<Action, Button> {
     get_state().input.get_all_binds()
+}
+
+#[cfg(feature = "precise_cursor_movement")]
+pub fn cursor_movements() -> Vec<Vec2> {
+    get_state()
+        .input
+        .helper
+        .cursor_movements()
+        .into_iter()
+        .map(|&v| v.into())
+        .collect()
 }

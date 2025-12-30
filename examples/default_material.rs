@@ -5,7 +5,7 @@ pub fn main() -> anyhow::Result<()> {
 
     let mut orbit_controller = OrbitCameraController::new(Vec3::ZERO);
 
-    let mut object = Object3D::from_obj(include_str!("../assets/models/suzanne.obj"))?;
+    let object = Object3D::from_obj(include_str!("../assets/models/suzanne.obj"))?;
     // object.compute_smooth_normals();
 
     loop {

@@ -53,12 +53,12 @@ impl GilrsInputHelper {
     /// # Errors
     ///
     /// Returns an error if gilrs fails to initialize (e.g., platform not supported).
-    pub fn new() -> Result<Self, Error> {
-        Ok(Self {
-            gilrs: Gilrs::new()?,
+    pub fn new() -> Self {
+        Self {
+            gilrs: Gilrs::new().unwrap(),
             gamepads: BTreeMap::new(),
             active_gamepad: None,
-        })
+        }
     }
 
     /// Updates the internal state by processing all pending gamepad events.
@@ -186,7 +186,7 @@ impl GilrsInputHelper {
         if self
             .gamepads
             .get(&id_usize)
-            .map_or(false, |s| s.is_connected())
+            .is_some_and(|s| s.is_connected())
         {
             self.active_gamepad = Some(id);
             true
@@ -281,25 +281,25 @@ impl GilrsInputHelper {
     /// Returns `true` if the button was pressed on the specified gamepad this frame.
     pub fn gamepad_button_pressed(&self, id: GamepadId, button: Button) -> bool {
         self.get_gamepad_state(id)
-            .map_or(false, |state| state.was_button_pressed(button))
+            .is_some_and(|state| state.was_button_pressed(button))
     }
 
     /// Returns `true` if the button was released on the specified gamepad this frame.
     pub fn gamepad_button_released(&self, id: GamepadId, button: Button) -> bool {
         self.get_gamepad_state(id)
-            .map_or(false, |state| state.was_button_released(button))
+            .is_some_and(|state| state.was_button_released(button))
     }
 
     /// Returns `true` if the button is currently held on the specified gamepad.
     pub fn gamepad_button_held(&self, id: GamepadId, button: Button) -> bool {
         self.get_gamepad_state(id)
-            .map_or(false, |state| state.is_button_held(button))
+            .is_some_and(|state| state.is_button_held(button))
     }
 
     /// Returns `true` if the button repeated on the specified gamepad this frame.
     pub fn gamepad_button_repeated(&self, id: GamepadId, button: Button) -> bool {
         self.get_gamepad_state(id)
-            .map_or(false, |state| state.was_button_repeated(button))
+            .is_some_and(|state| state.was_button_repeated(button))
     }
 
     /// Returns the value (0.0 to 1.0) of the button on the specified gamepad.
@@ -317,25 +317,25 @@ impl GilrsInputHelper {
     /// Returns `true` if the axis changed on the specified gamepad this frame.
     pub fn gamepad_axis_changed(&self, id: GamepadId, axis: Axis) -> bool {
         self.get_gamepad_state(id)
-            .map_or(false, |state| state.did_axis_change(axis))
+            .is_some_and(|state| state.did_axis_change(axis))
     }
 
     /// Returns `true` if the specified gamepad is connected.
     pub fn is_connected(&self, id: GamepadId) -> bool {
         self.get_gamepad_state(id)
-            .map_or(false, |state| state.is_connected())
+            .is_some_and(|state| state.is_connected())
     }
 
     /// Returns `true` if the specified gamepad was connected this frame.
     pub fn was_connected(&self, id: GamepadId) -> bool {
         self.get_gamepad_state(id)
-            .map_or(false, |state| state.was_connected_this_frame())
+            .is_some_and(|state| state.was_connected_this_frame())
     }
 
     /// Returns `true` if the specified gamepad was disconnected this frame.
     pub fn was_disconnected(&self, id: GamepadId) -> bool {
         self.get_gamepad_state(id)
-            .map_or(false, |state| state.was_disconnected_this_frame())
+            .is_some_and(|state| state.was_disconnected_this_frame())
     }
 
     fn get_gamepad_state(&self, id: GamepadId) -> Option<&GamepadState> {
@@ -354,5 +354,11 @@ impl GilrsInputHelper {
     /// Provides mutable access to the underlying `Gilrs` instance.
     pub fn gilrs_mut(&mut self) -> &mut Gilrs {
         &mut self.gilrs
+    }
+}
+
+impl Default for GilrsInputHelper {
+    fn default() -> Self {
+        Self::new()
     }
 }

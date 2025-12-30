@@ -18,12 +18,13 @@ pkgs.mkShell {
 
     # Activate the virtual environment
     source .venv/bin/activate
+    export PATH=".venv/bin:$PATH"
 
-    # Install coloraide if not already installed
-    if ! python -c "import coloraide" 2>/dev/null; then
-      echo "Installing coloraide..."
-      pip install coloraide
-    fi
+    # # Install coloraide if not already installed
+    # if ! python -c "import coloraide" 2>/dev/null; then
+    #   echo "Installing coloraide..."
+    #   pip install coloraide
+    # fi
 
     echo "Virtual environment activated with coloraide installed"
     echo "Python: $(which python)"

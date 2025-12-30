@@ -1,6 +1,6 @@
 #version 140
 in vec3 position;
-in vec4 color;
+ in vec4 color;
 out vec4 vertex_color;
 
 uniform mat4 transform;

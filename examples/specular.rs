@@ -28,6 +28,9 @@ fn main() -> anyhow::Result<()> {
             break;
         }
 
+        show_debug_info();
+        run_ui(|_| {});
+
         next_frame();
     }
 

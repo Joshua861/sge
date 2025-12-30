@@ -83,7 +83,7 @@ pub struct PostProcessingStep(pub Vec<PostProcessingEffect>);
 
 impl RenderPipeline {
     pub fn draw_queues(&mut self) -> &mut DrawQueues {
-        if matches!(self.most_recent_step(), RenderStep::PostProcessing(_)) {
+        if !matches!(self.most_recent_step(), Some(RenderStep::Drawing(_))) {
             self.steps.push(RenderStep::Drawing(DrawQueues::empty()));
         }
 
@@ -95,7 +95,7 @@ impl RenderPipeline {
     }
 
     pub fn post_processing_effects(&mut self) -> &mut PostProcessingStep {
-        if matches!(self.most_recent_step(), RenderStep::Drawing(_)) {
+        if !matches!(self.most_recent_step(), Some(RenderStep::PostProcessing(_))) {
             self.steps
                 .push(RenderStep::PostProcessing(PostProcessingStep(Vec::new())));
         }
@@ -119,9 +119,8 @@ impl RenderPipeline {
         &mut self.draw_queues().draw_queue_3d
     }
 
-    pub fn most_recent_step(&self) -> &RenderStep {
-        let len = self.steps.len() - 1;
-        &self.steps[len]
+    pub fn most_recent_step(&self) -> Option<&RenderStep> {
+        self.steps.last()
     }
 
     pub fn cameras(&self) -> Cameras {
@@ -137,7 +136,7 @@ impl RenderPipeline {
 
     pub fn new(output: RenderTarget, camera_override: Option<Cameras>) -> Self {
         Self {
-            steps: vec![RenderStep::Drawing(DrawQueues::empty())],
+            steps: vec![],
             output,
             clear_color: None,
             camera_override,
@@ -188,10 +187,11 @@ impl RenderPipeline {
                 a.framebuffer().clear_color(0.0, 0.0, 0.0, 1.0);
                 b.framebuffer().clear_color(0.0, 0.0, 0.0, 1.0);
             }
-            a.framebuffer().clear_depth(1.0);
-            b.framebuffer().clear_depth(1.0);
 
             for step in std::mem::take(&mut self.steps) {
+                a.framebuffer().clear_depth(1.0);
+                b.framebuffer().clear_depth(1.0);
+
                 match step {
                     RenderStep::Drawing(draw_queues) => {
                         self.draw_queues_to(

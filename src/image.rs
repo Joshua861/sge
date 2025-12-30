@@ -7,11 +7,13 @@ use engine_4_macros::gen_ref_type;
 use crate::color::u8::Pixel;
 use crate::utils::usize_rect::USizeRect;
 
+mod rendering;
+
 #[derive(Clone)]
 pub struct Image {
-    width: usize,
-    height: usize,
-    buf: Vec<Pixel>,
+    pub width: usize,
+    pub height: usize,
+    pub buf: Vec<Pixel>,
 }
 
 gen_ref_type!(Image, ImageRef, images);
@@ -51,6 +53,18 @@ impl Image {
         let cap = self.size() * 4;
         std::mem::forget(self.buf); // prevent free
         unsafe { Vec::from_raw_parts(ptr as *mut u8, len, cap) }
+    }
+
+    pub fn bytes(&self) -> &[u8] {
+        let ptr = self.buf.as_ptr() as *const u8;
+        let len = self.buf.len() * 4;
+        unsafe { std::slice::from_raw_parts(ptr, len) }
+    }
+
+    pub fn bytes_mut(&mut self) -> &mut [u8] {
+        let ptr = self.buf.as_ptr() as *mut u8;
+        let len = self.buf.len() * 4;
+        unsafe { std::slice::from_raw_parts_mut(ptr, len) }
     }
 
     pub const fn size(&self) -> usize {

@@ -15,9 +15,11 @@ pub use draw_queue_2d::Vertex3D;
 use egui_glium::{EguiGlium, egui_winit::egui::ViewportId};
 use fps_ticker::Fps;
 use glium::Program;
+#[cfg(feature = "profile")]
+use glium::glutin::surface::SwapInterval;
 use glium::{
     Frame,
-    backend::glutin::{Display, SimpleWindowBuilder},
+    backend::glutin::Display,
     glutin::surface::WindowSurface,
     winit::{
         event::Event, event_loop::EventLoop, platform::pump_events::EventLoopExtPumpEvents,
@@ -26,6 +28,9 @@ use glium::{
 };
 use image::Image;
 use input::Input;
+use log::LevelFilter;
+use logging::Logger;
+use logging::get_logger;
 use materials::Material;
 use object_3d::Mesh;
 use object_3d::Object3D;
@@ -41,19 +46,22 @@ use textures::EngineTexture;
 use textures::init_textures;
 use tunes::engine::AudioEngine;
 use user_storage::UserStorage;
+use window::WindowOptions;
+use window::init_window;
 
-mod animation;
-mod api;
-mod camera;
+pub mod animation;
+pub mod api;
+pub mod camera;
 pub mod collisions;
-mod color;
+pub mod color;
 mod config;
 #[cfg(feature = "debugging")]
 mod debugging;
 mod draw_queue_2d;
 mod draw_queue_3d;
-mod image;
+pub mod image;
 mod input;
+pub mod logging;
 mod materials;
 mod object_3d;
 mod physics;
@@ -66,14 +74,15 @@ mod shapes_3d;
 mod slop;
 mod text_rendering;
 mod textures;
-mod transform;
+pub mod transform;
 mod user_storage;
 mod utils;
+pub mod window;
 
 pub(crate) static mut ENGINE_STATE: Option<EngineState> = None;
 
 fn get_state() -> &'static mut EngineState {
-    thread_assert::same_thread();
+    // thread_assert::same_thread();
 
     unsafe { ENGINE_STATE.as_mut().unwrap_or_else(|| panic!()) }
 }
@@ -82,6 +91,8 @@ type EngineDisplay = Display<WindowSurface>;
 
 struct EngineState {
     window: Window,
+    window_size: Vec2,
+
     display: EngineDisplay,
     event_loop: EventLoop<()>,
     // bump_allocator: Bump,
@@ -96,6 +107,10 @@ struct EngineState {
     gui_initialized: bool,
     render_pipeline: RenderPipeline,
     texture_pipeline: Option<RenderPipeline>,
+    #[cfg(feature = "profile")]
+    profiler_guard: pprof::ProfilerGuard<'static>,
+    #[cfg(feature = "profile")]
+    fps: Fps,
     #[cfg(feature = "debugging")]
     debug_info: debugging::DebugInfo,
     storage: EngineStorage,
@@ -103,6 +118,8 @@ struct EngineState {
     config: EngineConfig,
     time: f32,
     physics_time: f32,
+    physics_speed: f32,
+    physics_delta_time: f32,
     is_physics_time_paused: bool,
     frame_count: usize,
     delta_time: f32,
@@ -142,16 +159,41 @@ impl EngineStorage {
     }
 }
 
+pub struct EngineCreationOptions<'a> {
+    pub window: WindowOptions<'a>,
+    pub min_log_level: LevelFilter,
+    pub config: EngineConfig,
+}
+
+impl Default for EngineCreationOptions<'_> {
+    fn default() -> Self {
+        Self {
+            window: WindowOptions::default(),
+            min_log_level: LevelFilter::Info,
+            config: EngineConfig::default(),
+        }
+    }
+}
+
 pub fn init(title: &str) -> anyhow::Result<()> {
-    env_logger::init();
+    let mut opts = EngineCreationOptions::default();
+    opts.window.title = title;
+    init_custom(opts)
+}
+
+pub fn init_custom(opts: EngineCreationOptions) -> anyhow::Result<()> {
+    logging::init_engine_logger()?;
+    get_logger().min_log_level = opts.min_log_level;
     color_eyre::install().expect("could not install color_eyre");
 
-    let event_loop = EventLoop::builder().build()?;
-    let window_params = Window::default_attributes().with_transparent(false);
-    let (window, display) = SimpleWindowBuilder::new()
-        .set_window_builder(window_params)
-        .with_title(title)
-        .build(&event_loop);
+    #[cfg(feature = "profile")]
+    let opts = WindowOptions {
+        swap_interval: SwapInterval::DontWait,
+        ..opts
+    };
+
+    let (window, display, event_loop) = init_window(opts.window)?;
+
     let input = Input::new();
     window.request_redraw();
 
@@ -176,11 +218,15 @@ pub fn init(title: &str) -> anyhow::Result<()> {
     let render_pipeline = RenderPipeline::screen();
     let audio_engine = AudioEngine::new()?;
     let user_storage = UserStorage::new();
+
+    let size = window.inner_size();
+    let window_size = Vec2::new(size.width as f32, size.height as f32);
     // let bump_allocator = Bump::new();
 
     unsafe {
         ENGINE_STATE = Some(EngineState {
             window,
+            window_size,
             display,
             texture_pipeline: None,
             event_loop,
@@ -193,6 +239,7 @@ pub fn init(title: &str) -> anyhow::Result<()> {
             audio_engine,
             gui,
             gui_initialized,
+            #[cfg(feature = "debugging")]
             debug_info,
             storage,
             rng,
@@ -205,7 +252,17 @@ pub fn init(title: &str) -> anyhow::Result<()> {
             cursor_position: Vec2::ZERO,
             frame_count: 0,
             physics_time: 0.0,
+            physics_delta_time: 0.0,
+            physics_speed: 1.0,
             user_storage,
+            #[cfg(feature = "profile")]
+            fps: Fps::default(),
+            #[cfg(feature = "profile")]
+            profiler_guard: pprof::ProfilerGuardBuilder::default()
+                .frequency(1000)
+                .blocklist(&["libc", "libgcc", "pthread", "vdso"])
+                .build()
+                .unwrap(),
         });
     }
 
@@ -220,8 +277,6 @@ pub fn next_frame() {
     #[cfg(feature = "debugging")]
     let engine_start_time = Instant::now();
     let state = get_state();
-
-    state.debug_info.next_frame();
 
     #[allow(deprecated)]
     state
@@ -245,6 +300,7 @@ pub fn next_frame() {
                     let size = state.window.inner_size();
                     state.camera_2d.update_sizes(size.width, size.height);
                     state.camera_3d.update_sizes(size.width, size.height);
+                    state.window_size = Vec2::new(size.width as f32, size.height as f32);
                 }
             }
             Event::DeviceEvent { event, .. } => {
@@ -268,6 +324,13 @@ pub fn next_frame() {
         state.gui.paint(&state.display, &mut frame);
     }
 
+    #[cfg(feature = "debugging")]
+    {
+        state.debug_info.next_frame();
+        let engine_time = engine_start_time.elapsed();
+        state.debug_info.current_frame_mut().engine_time = engine_time.as_millis_f64();
+    }
+
     frame.finish().unwrap();
     state.window.request_redraw();
 
@@ -279,7 +342,10 @@ pub fn next_frame() {
     state.last_frame_end_time = Instant::now();
 
     if !state.is_physics_time_paused {
-        state.physics_time += delta_time;
+        state.physics_delta_time = delta_time * state.physics_speed;
+        state.physics_time += state.physics_delta_time;
+    } else {
+        state.physics_delta_time = 0.0;
     }
 
     state.frame_count += 1;
@@ -288,10 +354,20 @@ pub fn next_frame() {
         state.cursor_position = c.into();
     }
 
-    #[cfg(feature = "debugging")]
+    #[cfg(feature = "profile")]
     {
-        let engine_time = engine_start_time.elapsed();
-        state.debug_info.current_frame_mut().engine_time = engine_time.as_millis_f64();
+        state.fps.tick();
+
+        if state.time >= 1.0
+            && let Ok(report) = state.profiler_guard.report().build()
+        {
+            use std::process::exit;
+
+            let file = std::fs::File::create("flamegraph.svg").unwrap();
+            report.flamegraph(file).unwrap();
+            println!("FPS: {}", state.fps.avg());
+            exit(0);
+        };
     }
 }
 
@@ -325,8 +401,7 @@ impl Drop for EngineState {
 
 impl EngineState {
     pub(crate) fn window_size(&self) -> Vec2 {
-        let size = self.window.inner_size();
-        Vec2::new(size.width as f32, size.height as f32)
+        self.window_size
     }
 
     pub(crate) fn dpi_scaling(&self) -> f32 {

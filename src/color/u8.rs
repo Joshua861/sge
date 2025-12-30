@@ -1,5 +1,7 @@
 use std::{fmt::Debug, hash::Hash};
 
+use super::Color;
+
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug)]
 #[repr(C)]
 pub struct Rgba {
@@ -21,6 +23,20 @@ unsafe impl Sync for Pixel {}
 impl Pixel {
     pub fn splat_f32(v: f32) -> Self {
         Self::from_rgba_f32(v, v, v, 1.0)
+    }
+
+    pub fn invert(self) -> Self {
+        Self::from_rgb(255 - self.r(), 255 - self.g(), 255 - self.b())
+    }
+
+    pub fn to_color(self) -> Color {
+        let rgba = self.rgba();
+        Color {
+            r: Self::u8_to_f32(rgba.r),
+            g: Self::u8_to_f32(rgba.g),
+            b: Self::u8_to_f32(rgba.b),
+            a: Self::u8_to_f32(rgba.a),
+        }
     }
 
     pub const fn r(&self) -> u8 {
@@ -100,6 +116,10 @@ impl Pixel {
 
     const fn f32_to_u8(n: f32) -> u8 {
         (n * 255.999) as u8
+    }
+
+    const fn u8_to_f32(n: u8) -> f32 {
+        n as f32 / 255.0
     }
 
     pub const fn with_alpha(mut self, a: u8) -> Self {

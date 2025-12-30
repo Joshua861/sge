@@ -3,7 +3,16 @@ use std::f32::consts::FRAC_PI_3;
 use engine_4::prelude::*;
 
 fn main() -> anyhow::Result<()> {
-    init("Demo")?;
+    let opts = EngineCreationOptions {
+        window: WindowOptions {
+            title: "Demo",
+            swap_interval: SwapInterval::DontWait,
+            ..Default::default()
+        },
+        ..Default::default()
+    };
+
+    init_custom(opts)?;
 
     let mut is_dark_mode = false;
     let mut camera_controller = PanningCameraController::new();

@@ -2,7 +2,7 @@ use proc_macro::TokenStream;
 use proc_macro2::TokenStream as Ts2;
 use quote::quote;
 use syn::parse::Parse;
-use syn::{Expr, Ident, Token, Visibility, parse_macro_input};
+use syn::{Expr, Ident, LitStr, Token, Visibility, parse_macro_input};
 
 struct Actions {
     actions: Vec<Action>,
@@ -26,7 +26,7 @@ impl Parse for Actions {
 }
 
 impl Actions {
-    fn to_tokens(self) -> Ts2 {
+    fn to_tokens(&self) -> Ts2 {
         let mut ts = Ts2::new();
 
         for (i, action) in self.actions.iter().enumerate() {
@@ -76,15 +76,11 @@ impl Parse for Binds {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
         let mut binds = vec![];
 
-        loop {
-            if let Ok(name) = input.parse() {
-                input.parse::<Token![=>]>()?;
-                if let Ok(value) = input.parse() {
-                    input.parse::<Token![;]>()?;
-                    binds.push((name, value))
-                } else {
-                    break;
-                }
+        while let Ok(name) = input.parse() {
+            input.parse::<Token![=>]>()?;
+            if let Ok(value) = input.parse() {
+                input.parse::<Token![;]>()?;
+                binds.push((name, value))
             } else {
                 break;
             }
@@ -159,6 +155,10 @@ pub fn gen_ref_type(input: TokenStream) -> TokenStream {
                 let id = get_state().storage.#storage_name.len();
                 Self(id)
             }
+
+            pub fn replace(&self, new: #ty) {
+                get_state().storage.#storage_name[self.0] = new;
+            }
         }
 
         impl crate::utils::EngineCreate<#ty_ref> for #ty {
@@ -198,4 +198,47 @@ pub fn gen_ref_type(input: TokenStream) -> TokenStream {
         }
     }
     .into()
+}
+
+#[proc_macro]
+pub fn include_texture(input: TokenStream) -> TokenStream {
+    let path = parse_macro_input!(input as LitStr);
+    let path_value = path.value();
+
+    let format = match path_value.rsplit('.').next() {
+        Some("png") => quote! { ImageFormat::Png },
+        Some("jpg") | Some("jpeg") => quote! { ImageFormat::Jpeg },
+        Some("gif") => quote! { ImageFormat::Gif },
+        Some("webp") => quote! { ImageFormat::WebP },
+        Some("pnm") | Some("pbm") | Some("pgm") | Some("ppm") | Some("pam") => {
+            quote! { ImageFormat::Pnm }
+        }
+        Some("tiff") | Some("tif") => quote! { ImageFormat::Tiff },
+        Some("tga") => quote! { ImageFormat::Tga },
+        Some("dds") => quote! { ImageFormat::Dds },
+        Some("bmp") => quote! { ImageFormat::Bmp },
+        Some("ico") => quote! { ImageFormat::Ico },
+        Some("hdr") => quote! { ImageFormat::Hdr },
+        Some("exr") => quote! { ImageFormat::OpenExr },
+        Some("ff") | Some("farbfeld") => quote! { ImageFormat::Farbfeld },
+        Some("avif") => quote! { ImageFormat::Avif },
+        Some("qoi") => quote! { ImageFormat::Qoi },
+        _ => {
+            return syn::Error::new(
+                path.span(),
+                format!(
+                    "Unsupported or unknown image format for file: {}",
+                    path_value
+                ),
+            )
+            .to_compile_error()
+            .into();
+        }
+    };
+
+    let expanded = quote! {
+        load_texture(include_bytes!(#path), #format).unwrap()
+    };
+
+    TokenStream::from(expanded)
 }

@@ -7,6 +7,9 @@
 - [X] poly circles as new function / optional
 - [X] cache projection matrix
 - [X] cull off screen world draws
+- [X] Logging system, that can log to stdout/stderr (like env_logger), or to an
+  onscreen thingy.
+- [X] functions to change speed of physics time
 - [ ] SI Unit system
 - [ ] clipping/masking
 - [ ] drop shadows 2d
@@ -33,6 +36,9 @@
 - [ ] draw Sphere
 - [X] draw cube
 - [ ] draw cuboid from Vec3
+- [ ] like retaining 2d shape state would be pretty efficient ngl
+  - maybe dont have to do culling every frame, like every 5 frames or something.
+    zoo wee mama!!!
 - [ ] match material HashMap<Material, Mesh>
 - [ ] Circle anti aliasing between outline and fill is non existent
 - [X] Move draw param overrides to the material
@@ -68,14 +74,14 @@
   - [X] fonts
   - [X] multiline
   - [ ] layout / text wrapping / text alignment
-  - [ ] rich text
+  - [X] rich text
   - [X] text measurement
   - [ ] text scale and rotation
   - [ ] sdf?
   - [ ] 3d
 - [X] transparant textures?
-- [ ] controller support
-  - [ ] Implementation
+- [-] controller support
+  - [X] Implementation
   - [ ] Testing
   - [ ] Examples
 - [ ] probably split into multiple crates
@@ -87,11 +93,18 @@
   - [X] Struct contains start, end, time, and interpolation function.
   - [X] Interpolation function trait.
     - [X] So you could have structs with configurable interpolation.
-  - [ ] sprite animation (needs spritesheets/atlasses)
+  - [ ] sprite animation
+    - (needs spritesheets/atlasses) ✅
   - [ ] https://docs.rs/macroquad/latest/macroquad/experimental/animation/index.html
   - [ ] Animation state machine
   - [ ] pause animation controller
 - [ ] egui_dock
+- [ ] winit input helper fork add precise mouse movemnt so that i can have all the
+  positions of it in the paint program for better curves
+- [ ] image texture pair struct with builtin methods and maybe a `dirty`
+- [ ] make implementing ui like clicking and hovering easier
+- [ ] software: draw thick line function for circles or something, see if instancing circles is good enough
+- [ ] hardware: rounded line function (with circle end caps). can replace a bunch of boiler plate in api.rs
 - [X] expose egui charts if not already
 - [ ] let users access intermediary depth textures only if they want it
 - [X] impl mul TransformXD for VecX

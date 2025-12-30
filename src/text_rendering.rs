@@ -16,6 +16,8 @@ use crate::{
     textures::TextureRef,
 };
 
+pub mod rich_text;
+
 pub struct EngineFont {
     font: fontdue::Font,
     atlas: TextureAtlas,
@@ -33,6 +35,7 @@ pub(crate) struct CharacterInfo {
 #[derive(Default)]
 pub struct TextDimensions {
     pub size: Vec2,
+    pub final_cursor_pos: Vec2,
     // pub offset_y: f32,
 }
 
@@ -275,7 +278,7 @@ impl EngineFont {
             fontdue::layout::Layout::new(fontdue::layout::CoordinateSystem::PositiveYDown);
         layout.append(&[&self.font], &TextStyle::new(text, font_size, 0));
 
-        let mut width = 0.0;
+        let mut width = 0.0f32;
 
         for position in layout.glyphs() {
             let glyph = Glyph {
@@ -285,12 +288,18 @@ impl EngineFont {
             if !self.contains(glyph) {
                 self.cache_glyph(glyph);
             }
+
             let char_info = self.characters[&glyph];
-            width += char_info.advance;
+
+            // FIXED: Use character advance to handle spaces correctly
+            let glyph_end = position.x + char_info.advance;
+            width = width.max(glyph_end);
         }
 
+        let size = Vec2::new(width, layout.height());
         TextDimensions {
-            size: Vec2::new(width, layout.height()),
+            size,
+            final_cursor_pos: size,
         }
     }
 
@@ -388,7 +397,7 @@ fn draw_text_to(
     let mut layout = fontdue::layout::Layout::new(fontdue::layout::CoordinateSystem::PositiveYDown);
     layout.append(&[&font.font], &TextStyle::new(text, font_size, 0));
 
-    let mut width = 0.0;
+    let mut width = 0.0f32;
 
     for glyph_position in layout.glyphs() {
         let glyph = Glyph {
@@ -405,7 +414,10 @@ fn draw_text_to(
         let rect = sprite.rect;
         let rectf: Rect = rect.into();
 
-        width += char_info.advance;
+        // FIXED: Use character advance to handle spaces correctly
+        // This accounts for both visual width AND advance (important for spaces!)
+        let glyph_end = glyph_position.x + char_info.advance;
+        width = width.max(glyph_end);
 
         let transform = Transform2D::from_scale_translation(
             Vec2::new(glyph_position.width as f32, glyph_position.height as f32),
@@ -415,8 +427,10 @@ fn draw_text_to(
         draw_queue.add_sprite(font.atlas.texture().unwrap(), transform, color, Some(rectf));
     }
 
+    let size = Vec2::new(width, layout.height());
     TextDimensions {
-        size: Vec2::new(width, layout.height()),
+        size,
+        final_cursor_pos: size,
     }
 }
 
@@ -510,9 +524,16 @@ fn draw_multiline_text_to(
 
     let mut max_width = 0.0f32;
     let mut current_y = params.position.y;
+    let mut current_x = 0.0;
     let line_height = params.font_size as f32 * line_spacing;
 
     for line in &lines {
+        if line.is_empty() {
+            current_y += line_height;
+            current_x = 0.0;
+            continue;
+        }
+
         let dims = draw_text_to(
             line,
             TextDrawParams {
@@ -521,14 +542,29 @@ fn draw_multiline_text_to(
             },
             draw_queue,
         );
+        current_x = dims.size.x;
         max_width = max_width.max(dims.size.x);
         current_y += line_height;
     }
 
     let total_height = line_height * (lines.len() as f32);
 
+    // Check if text ends with a newline - if so, cursor should be at start of next line
+    let ends_with_newline = text.ends_with('\n') || text.ends_with("\r\n");
+    let final_x = if ends_with_newline {
+        params.position.x
+    } else {
+        current_x + params.position.x
+    };
+    let final_y = if ends_with_newline {
+        params.position.y + total_height
+    } else {
+        params.position.y + total_height - line_height
+    };
+
     TextDimensions {
         size: Vec2::new(max_width, total_height),
+        final_cursor_pos: Vec2::new(final_x, final_y),
     }
 }
 
@@ -639,9 +675,11 @@ pub fn measure_multiline_text_ex(
 
     let mut max_width = 0.0f32;
     let line_height = params.font_size as f32 * line_spacing;
+    let mut current_x = 0.0;
 
     for line in &lines {
         let dims = measure_text_ex(line, params);
+        current_x = dims.size.x;
         max_width = max_width.max(dims.size.x);
     }
 
@@ -649,5 +687,6 @@ pub fn measure_multiline_text_ex(
 
     TextDimensions {
         size: Vec2::new(max_width, total_height),
+        final_cursor_pos: Vec2::new(current_x, total_height),
     }
 }

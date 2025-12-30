@@ -1,11 +1,11 @@
 use egui_glium::egui_winit::egui::Window;
 use egui_plot::{Line, Plot, PlotPoints};
 
-use crate::{Fps, get_state};
+use crate::{Fps, get_state, render_pipeline::RenderStep};
 
 pub mod grid;
 
-const FRAME_BACKLOG: usize = 240;
+const FRAME_BACKLOG: usize = 1000;
 
 pub struct DebugInfo {
     pub fps: Fps,
@@ -164,7 +164,7 @@ impl DebugInfo {
 
             ui.label(format!("FPS: {:.1}", self.fps.avg()));
             ui.label(format!(
-                "Engine time: {:.1}ms",
+                "Engine time: {:.3}ms",
                 self.current_frame().engine_time
             ));
         });
@@ -212,4 +212,17 @@ pub fn toggle_debug_info() {
 
 pub fn set_show_debug_info(to: bool) {
     get_debug_info_mut().show_window = to;
+}
+
+pub fn debug_render_steps() {
+    let state = get_state();
+
+    eprintln!("\nRender steps");
+
+    for step in &state.render_pipeline.steps {
+        match step {
+            RenderStep::Drawing(_) => eprintln!("- Draw step"),
+            RenderStep::PostProcessing(_) => eprintln!("- Post processing step"),
+        }
+    }
 }

@@ -1,4 +1,3 @@
-use bevy_math::VectorSpace;
 use engine_4::prelude::*;
 
 actions! {
@@ -51,6 +50,10 @@ fn main() -> anyhow::Result<()> {
 
                 if let Key::Named(NamedKey::Backspace) = key {
                     text.pop();
+                }
+
+                if let Key::Named(NamedKey::Enter) = key {
+                    text.push('\n');
                 }
             }
 

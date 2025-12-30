@@ -1,4 +1,4 @@
-use bevy_math::{UVec2, VectorSpace};
+use bevy_math::UVec2;
 use engine_4::prelude::*;
 
 fn main() -> anyhow::Result<()> {

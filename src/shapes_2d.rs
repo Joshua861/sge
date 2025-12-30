@@ -603,3 +603,356 @@ fn gen_mesh_from_points(points: &[Vec2], color: Color) -> (Vec<Vertex2D>, Vec<u3
 
     (vertices, indices)
 }
+
+pub fn draw_triangle_gradient(a: Vec2, b: Vec2, c: Vec2, ca: Color, cb: Color, cc: Color) {
+    let vertices = [
+        Vertex2D::new(a.x, a.y, ca),
+        Vertex2D::new(b.x, b.y, cb),
+        Vertex2D::new(c.x, c.y, cc),
+    ];
+
+    let indices = [0, 1, 2];
+
+    get_state().draw_queue_2d().add_mesh(&vertices, &indices);
+}
+
+pub fn draw_rect_gradient(
+    top_left: Vec2,
+    size: Vec2,
+    c_tl: Color,
+    c_tr: Color,
+    c_bl: Color,
+    c_br: Color,
+) {
+    let tl = top_left;
+    let tr = top_left + Vec2::new(size.x, 0.0);
+    let bl = top_left + Vec2::new(0.0, size.y);
+    let br = top_left + size;
+
+    let vertices = [
+        Vertex2D::new(tl.x, tl.y, c_tl),
+        Vertex2D::new(tr.x, tr.y, c_tr),
+        Vertex2D::new(bl.x, bl.y, c_bl),
+        Vertex2D::new(br.x, br.y, c_br),
+    ];
+
+    get_state()
+        .draw_queue_2d()
+        .add_mesh(&vertices, &QUAD_INDICES);
+}
+
+pub fn draw_square_gradient_all(
+    top_left: Vec2,
+    size: f32,
+    c_tl: Color,
+    c_tr: Color,
+    c_bl: Color,
+    c_br: Color,
+) {
+    draw_rect_gradient(top_left, Vec2::splat(size), c_tl, c_tr, c_bl, c_br);
+}
+
+pub fn draw_line_gradient(
+    start: Vec2,
+    end: Vec2,
+    thickness: f32,
+    start_color: Color,
+    end_color: Color,
+) {
+    draw_line_gradient_extra(
+        start,
+        end,
+        thickness,
+        start_color,
+        start_color,
+        end_color,
+        end_color,
+    );
+}
+
+pub fn draw_line_gradient_extra(
+    start: Vec2,
+    end: Vec2,
+    thickness: f32,
+    c_start_left: Color,
+    c_start_right: Color,
+    c_end_left: Color,
+    c_end_right: Color,
+) {
+    let vertices: Vec<Vertex2D> = Line2D {
+        start,
+        end,
+        thickness,
+        color: Color::TRANSPARENT,
+    }
+    .points(0)
+    .1
+    .into_iter()
+    .zip([c_start_right, c_end_right, c_start_left, c_end_left])
+    .map(|(mut v, c)| {
+        v.color = c.for_gpu();
+        v
+    })
+    .collect();
+
+    get_state()
+        .draw_queue_2d()
+        .add_mesh(&vertices, &QUAD_INDICES);
+}
+
+pub fn draw_triangle_gradient_world(a: Vec2, b: Vec2, c: Vec2, ca: Color, cb: Color, cc: Color) {
+    let tri = Triangle {
+        points: [a, b, c],
+        color: Color::TRANSPARENT,
+    };
+
+    if !tri.bounds().is_visible_in_world() {
+        return;
+    }
+
+    let vertices = [
+        Vertex2D::new(a.x, a.y, ca),
+        Vertex2D::new(b.x, b.y, cb),
+        Vertex2D::new(c.x, c.y, cc),
+    ];
+
+    let indices = [0, 1, 2];
+
+    get_state()
+        .world_draw_queue_2d()
+        .add_mesh(&vertices, &indices);
+}
+
+pub fn draw_rect_gradient_world(
+    top_left: Vec2,
+    size: Vec2,
+    c_tl: Color,
+    c_tr: Color,
+    c_bl: Color,
+    c_br: Color,
+) {
+    let rect = Rect {
+        top_left,
+        size,
+        color: Color::TRANSPARENT,
+    };
+
+    if !rect.bounds().is_visible_in_world() {
+        return;
+    }
+
+    let tl = top_left;
+    let tr = top_left + Vec2::new(size.x, 0.0);
+    let bl = top_left + Vec2::new(0.0, size.y);
+    let br = top_left + size;
+
+    let vertices = [
+        Vertex2D::new(tl.x, tl.y, c_tl),
+        Vertex2D::new(tr.x, tr.y, c_tr),
+        Vertex2D::new(bl.x, bl.y, c_bl),
+        Vertex2D::new(br.x, br.y, c_br),
+    ];
+
+    get_state()
+        .world_draw_queue_2d()
+        .add_mesh(&vertices, &QUAD_INDICES);
+}
+
+pub fn draw_square_gradient_world(
+    top_left: Vec2,
+    size: f32,
+    c_tl: Color,
+    c_tr: Color,
+    c_bl: Color,
+    c_br: Color,
+) {
+    draw_rect_gradient_world(top_left, Vec2::splat(size), c_tl, c_tr, c_bl, c_br);
+}
+
+pub fn draw_line_gradient_world(
+    start: Vec2,
+    end: Vec2,
+    thickness: f32,
+    start_color: Color,
+    end_color: Color,
+) {
+    draw_line_gradient_extra_world(
+        start,
+        end,
+        thickness,
+        start_color,
+        start_color,
+        end_color,
+        end_color,
+    );
+}
+
+pub fn draw_line_gradient_extra_world(
+    start: Vec2,
+    end: Vec2,
+    thickness: f32,
+    c_start_left: Color,
+    c_start_right: Color,
+    c_end_left: Color,
+    c_end_right: Color,
+) {
+    let line = Line2D {
+        start,
+        end,
+        thickness,
+        color: Color::TRANSPARENT,
+    };
+
+    if !line.bounds().is_visible_in_world() {
+        return;
+    }
+
+    let vertices: Vec<Vertex2D> = line
+        .points(0)
+        .1
+        .into_iter()
+        .zip([c_start_right, c_end_right, c_start_left, c_end_left])
+        .map(|(mut v, c)| {
+            v.color = c.for_gpu();
+            v
+        })
+        .collect();
+
+    if vertices.is_empty() {
+        return;
+    }
+
+    get_state()
+        .world_draw_queue_2d()
+        .add_mesh(&vertices, &QUAD_INDICES);
+}
+
+#[inline]
+pub fn draw_rect_gradient_vertical(top_left: Vec2, size: Vec2, top: Color, bottom: Color) {
+    draw_rect_gradient(top_left, size, top, top, bottom, bottom);
+}
+
+#[inline]
+pub fn draw_rect_gradient_horizontal(top_left: Vec2, size: Vec2, left: Color, right: Color) {
+    draw_rect_gradient(top_left, size, left, right, left, right);
+}
+
+#[inline]
+pub fn draw_rect_gradient_tl_br(top_left: Vec2, size: Vec2, tl: Color, br: Color) {
+    let m = tl.blend_halfway(br);
+    draw_rect_gradient(top_left, size, tl, m, m, br);
+}
+
+#[inline]
+pub fn draw_rect_gradient_tr_bl(top_left: Vec2, size: Vec2, tr: Color, bl: Color) {
+    let m = tr.blend_halfway(bl);
+    draw_rect_gradient(top_left, size, m, tr, bl, m);
+}
+
+#[inline]
+pub fn draw_rect_gradient_vertical_world(top_left: Vec2, size: Vec2, top: Color, bottom: Color) {
+    draw_rect_gradient_world(top_left, size, top, top, bottom, bottom);
+}
+
+#[inline]
+pub fn draw_rect_gradient_horizontal_world(top_left: Vec2, size: Vec2, left: Color, right: Color) {
+    draw_rect_gradient_world(top_left, size, left, right, left, right);
+}
+
+#[inline]
+pub fn draw_rect_gradient_tl_br_world(top_left: Vec2, size: Vec2, tl: Color, br: Color) {
+    let m = tl.blend_halfway(br);
+    draw_rect_gradient_world(top_left, size, tl, m, m, br);
+}
+
+#[inline]
+pub fn draw_rect_gradient_tr_bl_world(top_left: Vec2, size: Vec2, tr: Color, bl: Color) {
+    let m = tr.blend_halfway(bl);
+    draw_rect_gradient_world(top_left, size, m, tr, bl, m);
+}
+
+#[inline]
+pub fn draw_square_gradient_vertical(top_left: Vec2, size: f32, top: Color, bottom: Color) {
+    draw_rect_gradient_vertical(top_left, Vec2::splat(size), top, bottom);
+}
+
+#[inline]
+pub fn draw_square_gradient_horizontal(top_left: Vec2, size: f32, left: Color, right: Color) {
+    draw_rect_gradient_horizontal(top_left, Vec2::splat(size), left, right);
+}
+
+#[inline]
+pub fn draw_square_gradient_tl_br(top_left: Vec2, size: f32, tl: Color, br: Color) {
+    draw_rect_gradient_tl_br(top_left, Vec2::splat(size), tl, br);
+}
+
+#[inline]
+pub fn draw_square_gradient_tr_bl(top_left: Vec2, size: f32, tr: Color, bl: Color) {
+    draw_rect_gradient_tr_bl(top_left, Vec2::splat(size), tr, bl);
+}
+
+#[inline]
+pub fn draw_square_gradient_vertical_world(top_left: Vec2, size: f32, top: Color, bottom: Color) {
+    draw_rect_gradient_vertical_world(top_left, Vec2::splat(size), top, bottom);
+}
+
+#[inline]
+pub fn draw_square_gradient_horizontal_world(top_left: Vec2, size: f32, left: Color, right: Color) {
+    draw_rect_gradient_horizontal_world(top_left, Vec2::splat(size), left, right);
+}
+
+#[inline]
+pub fn draw_square_gradient_tl_br_world(top_left: Vec2, size: f32, tl: Color, br: Color) {
+    draw_rect_gradient_tl_br_world(top_left, Vec2::splat(size), tl, br);
+}
+
+#[inline]
+pub fn draw_square_gradient_tr_bl_world(top_left: Vec2, size: f32, tr: Color, bl: Color) {
+    draw_rect_gradient_tr_bl_world(top_left, Vec2::splat(size), tr, bl);
+}
+
+fn draw_gradient_path_internal<F>(
+    points: &[Vec2],
+    thickness: f32,
+    start: Color,
+    end: Color,
+    mut draw_seg: F,
+) where
+    F: FnMut(Vec2, Vec2, f32, Color, Color),
+{
+    if points.len() < 2 {
+        return;
+    }
+
+    let total_len: f32 = points.windows(2).map(|p| (p[1] - p[0]).length()).sum();
+
+    if total_len == 0.0 {
+        return;
+    }
+
+    let mut acc = 0.0;
+
+    for seg in points.windows(2) {
+        let len = (seg[1] - seg[0]).length();
+        let t0 = acc / total_len;
+        let t1 = (acc + len) / total_len;
+
+        draw_seg(
+            seg[0],
+            seg[1],
+            thickness,
+            start.blend(end, t0),
+            start.blend(end, t1),
+        );
+
+        acc += len;
+    }
+}
+
+pub fn draw_gradient_path(points: &[Vec2], thickness: f32, start: Color, end: Color) {
+    draw_gradient_path_internal(points, thickness, start, end, draw_line_gradient);
+}
+
+pub fn draw_gradient_path_world(points: &[Vec2], thickness: f32, start: Color, end: Color) {
+    draw_gradient_path_internal(points, thickness, start, end, draw_line_gradient_world);
+}
