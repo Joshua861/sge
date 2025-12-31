@@ -8,7 +8,7 @@ use crate::{
     text_rendering::draw_text_to,
 };
 
-use super::{FontRef, TextDimensions, TextDrawParams, draw_text_ex};
+use super::{FontRef, TextDimensions, TextDrawParams};
 
 #[derive(Debug, Clone)]
 pub struct RichText {
@@ -65,11 +65,11 @@ impl RichTextParser {
         })
     }
 
-    fn consume_or_not(&mut self, token: char) {
-        if self.peek() == Some(token) {
-            self.next();
-        }
-    }
+    // fn consume_or_not(&mut self, token: char) {
+    //     if self.peek() == Some(token) {
+    //         self.next();
+    //     }
+    // }
 
     fn consume(&mut self, token: char) -> Result<(), RichTextParseError> {
         if let Some(c) = self.next() {

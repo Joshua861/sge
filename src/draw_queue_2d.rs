@@ -1,6 +1,9 @@
 use std::collections::HashMap;
 
-use crate::api::debugger_add_drawn_objects;
+use crate::api::{
+    debugger_add_draw_calls, debugger_add_drawn_objects, debugger_add_indices,
+    debugger_add_vertices,
+};
 use crate::prelude::{Transform2D, draw_shape};
 use crate::programs::{CIRCLE_PROGRAM, FLAT_PROGRAM, TEXTURED_PROGRAM};
 use crate::shapes_2d::{QUAD_INDICES, Shape2D, UNIT_QUAD};
@@ -147,7 +150,7 @@ impl DrawQueue2D {
             sprite_draws: HashMap::new(),
             current_z: 0.0,
             start_z: 0.0,
-            z_increment: 0.01,
+            z_increment: 0.000001,
         }
     }
 
@@ -158,7 +161,7 @@ impl DrawQueue2D {
             current_max_index: 0,
             circle_instances: vec![],
             sprite_draws: HashMap::new(),
-            current_z: 0.0,
+            current_z: start_z,
             start_z,
             z_increment,
         }
@@ -504,15 +507,9 @@ impl DrawQueue2D {
             ..Default::default()
         };
 
-        #[cfg(feature = "debugging")]
-        {
-            use crate::debugging::get_debug_info_mut;
-            let debug = get_debug_info_mut();
-            let frame_info = debug.current_frame_mut();
-            frame_info.draw_calls += 1;
-            frame_info.vertex_count += vertex_buffer.len();
-            frame_info.index_count += index_buffer.len();
-        }
+        debugger_add_draw_calls(1);
+        debugger_add_indices(index_buffer.len());
+        debugger_add_vertices(vertex_buffer.len());
 
         frame
             .draw(

@@ -2,6 +2,7 @@ use std::any::Any;
 
 #[cfg(feature = "debugging")]
 use crate::prelude::avg_fps;
+use crate::render_pipeline::ClearColor;
 use crate::utils::EngineCreate;
 use crate::{
     camera::Camera3D,
@@ -21,7 +22,6 @@ use glium::{
     texture::DepthTexture2d,
     uniforms::{MagnifySamplerFilter, MinifySamplerFilter},
 };
-use log::LevelFilter;
 use rand::{
     Rng,
     distr::{
@@ -33,9 +33,12 @@ use tunes::engine::AudioEngine;
 
 use crate::{camera::Camera2D, color::Color, get_state, textures::TextureRef};
 
-// always sets color alpha to 1.0 to stop some buggyness
 pub fn clear_screen(color: Color) {
-    get_state().current_render_pipeline().clear_color = Some(color.with_alpha(1.0));
+    get_state().current_render_pipeline().clear_color = ClearColor::Clear(color);
+}
+
+pub fn dont_clear_screen() {
+    get_state().current_render_pipeline().clear_color = ClearColor::DontClear;
 }
 
 pub fn draw_tri_outline(a: Vec2, b: Vec2, c: Vec2, thickness: f32, color: Color) {
@@ -574,7 +577,7 @@ pub fn is_physics_time_paused_mut() -> &'static mut bool {
 
 #[cfg(feature = "debugging")]
 pub fn draw_fps() {
-    draw_text(format!("{:.1}", avg_fps()), Vec2::new(10.0, 5.0));
+    draw_text(format!("{:.1}FPS", avg_fps()), Vec2::new(10.0, 5.0));
 }
 
 pub fn storage_store_state<T: Any>(state: T) {

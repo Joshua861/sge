@@ -5,8 +5,8 @@ pub use crate::collisions;
 pub use crate::collisions::IntersectsWith;
 pub use crate::color::Color;
 // pub use crate::color::schemes::ColorScheme;
-pub use crate::EngineCreationOptions;
 pub use crate::animation::*;
+pub use crate::config::EngineCreationOptions;
 #[cfg(feature = "debugging")]
 pub use crate::debugging::grid::create_infinite_grid;
 #[cfg(feature = "debugging")]
@@ -59,13 +59,21 @@ pub use engine_4_macros::include_texture;
 pub use engine_4_macros::{actions, bind};
 pub use glium;
 pub use glium::Texture2d;
-pub use glium::glutin::{
-    config::ConfigTemplateBuilder,
-    context::ContextAttributesBuilder,
-    surface::{SurfaceAttributesBuilder, SwapInterval},
-};
 pub use glium::winit::event::MouseButton;
 pub use glium::winit::keyboard::{Key, KeyCode, NamedKey};
+pub use glium::winit::window::Window;
+pub use glium::{
+    glutin::{
+        config::{ColorBufferType, ConfigSurfaceTypes, ConfigTemplateBuilder},
+        context::{ContextAttributesBuilder, GlProfile, Priority, ReleaseBehavior, Robustness},
+        surface::{SurfaceAttributesBuilder, SwapInterval, WindowSurface},
+    },
+    uniforms::{MagnifySamplerFilter, MinifySamplerFilter},
+    winit::{
+        dpi::{Position, Size},
+        window::{Cursor, Fullscreen, Icon, Theme, WindowAttributes, WindowButtons, WindowLevel},
+    },
+};
 pub use image;
 pub use image::ImageFormat;
 pub use include_folder::include_folder;

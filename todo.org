@@ -10,6 +10,11 @@
 - [X] Logging system, that can log to stdout/stderr (like env_logger), or to an
   onscreen thingy.
 - [X] functions to change speed of physics time
+- [ ] FIX: if you render too much text it just gives up and stops rendering any
+  more text, but just for that one draw queue
+  - no more textures are drawn, not just ones from the same texture atlas. nothing.
+- [ ] probably split into multiple crates
+- [ ] now we have logging. log things
 - [ ] SI Unit system
 - [ ] clipping/masking
 - [ ] drop shadows 2d
@@ -28,9 +33,9 @@
 - [ ] clipboard interaction
 - [ ] Serde feature to make everything publicly facing serializable.
   - [ ] automatic saving and loading support with efficient binary format
-- [ ] Transparency is fucked
-  - [ ] Very fucked
-  - [ ] Someone needs to do something about this
+- [X] Transparency is fucked
+  - [X] Very fucked
+  - [X] Someone needs to do something about this
 - [ ] debug AABB draw lines on ::new() in wireframe feature
 - [ ] draw line 3D
 - [ ] draw Sphere
@@ -84,7 +89,6 @@
   - [X] Implementation
   - [ ] Testing
   - [ ] Examples
-- [ ] probably split into multiple crates
 - [ ] drag and drop files?
 - [-] Animation support
   - [X] Needs some sort of retained state.
@@ -188,7 +192,6 @@
   - [ ] Include sound
   - [ ] 3D sound
   - [ ] Not happy with sound. need to look into it more
-- [ ] Compute shaders
 - [X] Convert 2D Primitives to use Z-indexing so batching isnt a problem
 - [-] 3D
   - [X] Camera

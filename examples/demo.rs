@@ -3,15 +3,10 @@ use std::f32::consts::FRAC_PI_3;
 use engine_4::prelude::*;
 
 fn main() -> anyhow::Result<()> {
-    let opts = EngineCreationOptions {
-        window: WindowOptions {
-            title: "Demo",
-            swap_interval: SwapInterval::DontWait,
-            ..Default::default()
-        },
-        ..Default::default()
-    };
-
+    let opts = EngineCreationOptions::builder()
+        .title("Demo".to_string())
+        .swap_interval(SwapInterval::DontWait)
+        .build();
     init_custom(opts)?;
 
     let mut is_dark_mode = false;

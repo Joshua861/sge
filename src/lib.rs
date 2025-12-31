@@ -9,6 +9,7 @@ use camera::Camera3D;
 use camera::projection_from_window;
 use color::Color;
 use config::EngineConfig;
+use config::EngineCreationOptions;
 #[cfg(feature = "debugging")]
 use debugging::DebugInfo;
 pub use draw_queue_2d::Vertex3D;
@@ -28,8 +29,8 @@ use glium::{
 };
 use image::Image;
 use input::Input;
-use log::LevelFilter;
-use logging::Logger;
+use log::error;
+use log::info;
 use logging::get_logger;
 use materials::Material;
 use object_3d::Mesh;
@@ -46,7 +47,6 @@ use textures::EngineTexture;
 use textures::init_textures;
 use tunes::engine::AudioEngine;
 use user_storage::UserStorage;
-use window::WindowOptions;
 use window::init_window;
 
 pub mod animation;
@@ -54,7 +54,7 @@ pub mod api;
 pub mod camera;
 pub mod collisions;
 pub mod color;
-mod config;
+pub mod config;
 #[cfg(feature = "debugging")]
 mod debugging;
 mod draw_queue_2d;
@@ -159,32 +159,22 @@ impl EngineStorage {
     }
 }
 
-pub struct EngineCreationOptions<'a> {
-    pub window: WindowOptions<'a>,
-    pub min_log_level: LevelFilter,
-    pub config: EngineConfig,
-}
-
-impl Default for EngineCreationOptions<'_> {
-    fn default() -> Self {
-        Self {
-            window: WindowOptions::default(),
-            min_log_level: LevelFilter::Info,
-            config: EngineConfig::default(),
-        }
-    }
-}
-
-pub fn init(title: &str) -> anyhow::Result<()> {
-    let mut opts = EngineCreationOptions::default();
-    opts.window.title = title;
+pub fn init(title: impl AsRef<str>) -> anyhow::Result<()> {
+    let opts = EngineCreationOptions::builder()
+        .title(title.as_ref().to_string())
+        .build();
     init_custom(opts)
 }
 
-pub fn init_custom(opts: EngineCreationOptions) -> anyhow::Result<()> {
+pub fn init_custom(opts: config::Opts) -> anyhow::Result<()> {
+    let opts = opts.build();
     logging::init_engine_logger()?;
     get_logger().min_log_level = opts.min_log_level;
-    color_eyre::install().expect("could not install color_eyre");
+    get_logger().verbosity = opts.log_verbosity;
+    match color_eyre::install() {
+        Ok(_) => (),
+        Err(e) => error!("Could not install color_eyre: {e}"),
+    }
 
     #[cfg(feature = "profile")]
     let opts = WindowOptions {
@@ -192,7 +182,16 @@ pub fn init_custom(opts: EngineCreationOptions) -> anyhow::Result<()> {
         ..opts
     };
 
-    let (window, display, event_loop) = init_window(opts.window)?;
+    let (window, display, event_loop) = match init_window(opts.window) {
+        Ok(output) => {
+            info!("Initialized window, display, event loop.");
+            output
+        }
+        Err(e) => {
+            error!("FATAL: Could not initialize window: {e}");
+            return Err(e);
+        }
+    };
 
     let input = Input::new();
     window.request_redraw();
@@ -269,6 +268,8 @@ pub fn init_custom(opts: EngineCreationOptions) -> anyhow::Result<()> {
     thread_assert::set_thread_id();
 
     init_fonts();
+
+    info!("Finished initializing engine.");
 
     Ok(())
 }
@@ -380,6 +381,7 @@ pub(crate) mod thread_assert {
         }
     }
 
+    #[allow(unused)]
     pub fn same_thread() {
         unsafe {
             thread_local! {

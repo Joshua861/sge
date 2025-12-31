@@ -4,7 +4,6 @@ use std::fs::File;
 
 use crate::{
     color::Color,
-    get_state,
     prelude::{RichText, RichTextBlock, RichTextDrawParams},
 };
 
@@ -42,6 +41,14 @@ pub fn log_lines() -> &'static mut [RichText] {
 
 pub fn set_min_log_level(level: LevelFilter) {
     get_logger().set_min_log_level(level);
+}
+
+pub fn set_logger_verbosity(verbosity: Verbosity) {
+    get_logger().verbosity = verbosity;
+}
+
+pub fn set_max_drawn_log_lines(lines: usize) {
+    get_logger().draw_lines = lines;
 }
 
 pub(crate) fn init_engine_logger() -> Result<(), log::SetLoggerError> {
@@ -120,20 +127,37 @@ impl Logger {
     }
 
     fn log(&mut self, record: &log::Record) {
-        if let Some(line) = Self::format_log(record) {
+        if let Some(line) = self.format_log(record) {
             line.print_to_stdout();
             self.lines.push(line);
         }
     }
 
-    fn format_log(record: &log::Record) -> Option<RichText> {
+    fn format_log(&self, record: &log::Record) -> Option<RichText> {
         let s = record.args().as_str()?;
         let color = Self::color(record.level());
         let level_text = Self::text(record.level());
-        Some(RichText::new(vec![
-            RichTextBlock::from_str(level_text, color),
-            RichTextBlock::new(format!(" {s}"), Color::WHITE),
-        ]))
+
+        match self.verbosity {
+            Verbosity::Low => Some(RichText::new(vec![RichTextBlock::from_str(s, color)])),
+            Verbosity::Medium => Some(RichText::new(vec![
+                RichTextBlock::from_str(level_text, color),
+                RichTextBlock::new(format!(" {s}"), Color::WHITE),
+            ])),
+            Verbosity::High => Some(RichText::new(vec![
+                RichTextBlock::new(
+                    format!(
+                        "[{}::{}:{}]",
+                        record.module_path().unwrap_or("??"),
+                        record.file().unwrap_or("??"),
+                        record.line().unwrap_or(0)
+                    ),
+                    Color::NEUTRAL_500,
+                ),
+                RichTextBlock::from_str(level_text, color),
+                RichTextBlock::new(format!(" {s}"), Color::WHITE),
+            ])),
+        }
     }
 }
 

@@ -38,6 +38,7 @@ trig-const = "0.3.0"
 phf = { version = "0.11", features = ["macros"] }
 thiserror = "2.0.17"
 termcolor = "1.4.1"
+bon = "3.8.1"
 
 [profile.dev]
 opt-level = 1

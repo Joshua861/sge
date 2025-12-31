@@ -48,8 +48,20 @@ pub enum RenderTarget {
 pub struct RenderPipeline {
     pub steps: Vec<RenderStep>,
     pub output: RenderTarget,
-    pub clear_color: Option<Color>,
+    pub clear_color: ClearColor,
     pub camera_override: Option<Cameras>,
+}
+
+pub enum ClearColor {
+    Clear(Color),
+    DontClear,
+    Default,
+}
+
+impl From<Color> for ClearColor {
+    fn from(value: Color) -> Self {
+        Self::Clear(value)
+    }
 }
 
 // i dont care
@@ -138,7 +150,7 @@ impl RenderPipeline {
         Self {
             steps: vec![],
             output,
-            clear_color: None,
+            clear_color: ClearColor::Default,
             camera_override,
         }
     }
@@ -180,12 +192,16 @@ impl RenderPipeline {
             let mut a = empty_render_texture(dimensions.0, dimensions.1).unwrap();
             let mut b = empty_render_texture(dimensions.0, dimensions.1).unwrap();
 
-            if let Some(c) = self.clear_color {
-                a.framebuffer().clear_color(c.r, c.g, c.b, c.a);
-                b.framebuffer().clear_color(c.r, c.g, c.b, c.a);
-            } else {
-                a.framebuffer().clear_color(0.0, 0.0, 0.0, 1.0);
-                b.framebuffer().clear_color(0.0, 0.0, 0.0, 1.0);
+            match self.clear_color {
+                ClearColor::DontClear => (),
+                ClearColor::Default => {
+                    a.framebuffer().clear_color(0.0, 0.0, 0.0, 1.0);
+                    b.framebuffer().clear_color(0.0, 0.0, 0.0, 1.0);
+                }
+                ClearColor::Clear(c) => {
+                    a.framebuffer().clear_color(c.r, c.g, c.b, c.a);
+                    b.framebuffer().clear_color(c.r, c.g, c.b, c.a);
+                }
             }
 
             for step in std::mem::take(&mut self.steps) {
@@ -222,12 +238,17 @@ impl RenderPipeline {
             state.storage.textures.pop();
             state.storage.textures.pop();
         } else {
-            if let Some(c) = self.clear_color {
-                frame.clear_color(c.r, c.g, c.b, c.a);
-            } else {
-                frame.clear_color(0.0, 0.0, 0.0, 1.0);
+            match self.clear_color {
+                ClearColor::DontClear => (),
+                ClearColor::Default => {
+                    frame.clear_color(0.0, 0.0, 0.0, 1.0);
+                    frame.clear_depth(1.0);
+                }
+                ClearColor::Clear(c) => {
+                    frame.clear_color(c.r, c.g, c.b, c.a);
+                    frame.clear_depth(1.0);
+                }
             }
-            frame.clear_depth(1.0);
 
             for step in std::mem::take(&mut self.steps) {
                 match step {
