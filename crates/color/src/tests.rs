@@ -251,7 +251,7 @@ fn test_richtext_parse_multiple_colors() {
 #[test]
 fn test_richtext_parse_space_after_color() {
     // Single space after color block is ignored
-    let rich_text = RichText::parse("{RED_500} red text").unwrap();
+    let rich_text = RichText::parse("{RED_500}red text").unwrap();
     assert_eq!(rich_text.blocks.len(), 1);
     assert_eq!(rich_text.blocks[0].text, "red text");
 }
@@ -309,7 +309,7 @@ fn test_richtext_parse_rgb_without_parens() {
 
 #[test]
 fn test_richtext_parse_rgb_floats() {
-    let rich_text = RichText::parse("{rgb(0.1, 0.9, 0.1)} green text").unwrap();
+    let rich_text = RichText::parse("{rgb(0.1, 0.9, 0.1)}green text").unwrap();
     assert_eq!(rich_text.blocks.len(), 1);
     assert_eq!(rich_text.blocks[0].color, Color::from_rgb(0.1, 0.9, 0.1));
     assert_eq!(rich_text.blocks[0].text, "green text");

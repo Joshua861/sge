@@ -5,13 +5,11 @@ name = "engine_4"
 version = "0.1.0"
 edition = "2024"
 
-[dependencies]
-anyhow = "1.0.100"
+[workspace.dependencies]
 bevy_math = "0.17.2"
 bumpalo = { version = "3.19.0", features = ["collections"] }
 color-eyre = "0.6.5"
 egui_glium = "0.31.1"
-egui_plot = {version = "0.31", optional = true}
 env_logger = "0.11.8"
 fontdue = "0.9.3"
 fps_ticker = "1.0.0"
@@ -28,17 +26,54 @@ paste = "1.0.15"
 rand = "0.9.2"
 rapier2d = { version = "0.30.1", features = ["simd-stable"] }
 tunes = { version = "1.0.2", features = ["gpu"] }
-winit_input_helper = { path = "./crates/winit_input_helper" }
 engine_4_macros = { path = "./crates/engine_4_macros" }
-gilrs_input_helper = { path = "./crates/gilrs_input_helper", optional = true }
 rayon = "1.11.0"
-pprof = { version = "0.15.0", features = ["flamegraph"], optional = true }
 glutin-winit = "0.5.0"
 trig-const = "0.3.0"
 phf = { version = "0.11", features = ["macros"] }
 thiserror = "2.0.17"
 termcolor = "1.4.1"
 bon = "3.8.1"
+anyhow = "1.0.100"
+error_union = { path = "./crates/error_union" }
+engine_color = { path = "./crates/color" }
+
+[dependencies]
+gilrs_input_helper = { path = "./crates/gilrs_input_helper", optional = true }
+pprof = { version = "0.15.0", features = ["flamegraph"], optional = true }
+egui_plot = {version = "0.31", optional = true}
+winit_input_helper = { path = "./crates/winit_input_helper" }
+bevy_math = { workspace = true }
+bumpalo = { workspace = true }
+color-eyre = { workspace = true }
+egui_glium = { workspace = true }
+env_logger = { workspace = true }
+fontdue = { workspace = true }
+fps_ticker = { workspace = true }
+glium = { workspace = true }
+glyph_brush = { workspace = true }
+image = { workspace = true }
+include_folder = { workspace = true }
+log = { workspace = true }
+lyon = { workspace = true }
+nalgebra = { workspace = true }
+obj-rs = { workspace = true }
+palette = { workspace = true }
+paste = { workspace = true }
+rand = { workspace = true }
+rapier2d = { workspace = true }
+tunes = { workspace = true }
+engine_4_macros = { workspace = true }
+rayon = { workspace = true }
+glutin-winit = { workspace = true }
+trig-const = { workspace = true }
+phf = { workspace = true }
+thiserror = { workspace = true }
+termcolor = { workspace = true }
+bon = { workspace = true }
+anyhow = { workspace = true }
+error_union = { workspace = true }
+engine_color = { workspace = true }
 
 [profile.dev]
 opt-level = 1
@@ -78,4 +113,15 @@ precise_cursor_movement = ["winit_input_helper/precise_cursor_movement"]
 profile = ["dep:pprof"]
 
 [workspace]
-members = [".", "examples/perf_test"]
+members = [
+    ".",
+    "crates/error_union",
+    "examples/perf_test",
+    "crates/color",
+    "crates/engine_4_macros",
+    "crates/gilrs_input_helper",
+    "crates/include_folder",
+    "crates/si",
+    "crates/winit_input_helper"
+ ]
+resolver = "3"

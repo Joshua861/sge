@@ -1,0 +1,12 @@
+[package]
+name = "engine_color"
+version = "0.0.1"
+authors = [ "Lily Lopes <joshrl@proton.me>" ]
+
+[dependencies]
+bevy_math = { workspace = true }
+egui_glium = { workspace = true }
+palette = { workspace = true }
+trig-const = { workspace = true }
+phf = { workspace = true }
+image = { workspace = true }

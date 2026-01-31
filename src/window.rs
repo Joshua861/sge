@@ -2,6 +2,7 @@
 
 use std::num::NonZeroU32;
 
+use error_union::ErrorUnion;
 use glium::{
     backend::glutin::Display,
     glutin::{
@@ -42,9 +43,17 @@ impl Default for WindowOptions {
     }
 }
 
+#[derive(ErrorUnion, Debug)]
+pub enum WindowCreationError {
+    EventLoop(glium::winit::error::EventLoopError),
+    Handle(glium::winit::raw_window_handle::HandleError),
+    Glutin(glium::glutin::error::Error),
+    IncompatibleOpenGl(glium::IncompatibleOpenGl),
+}
+
 pub(crate) fn init_window(
     opts: WindowOptions,
-) -> anyhow::Result<(Window, EngineDisplay, EventLoop<()>)> {
+) -> Result<(Window, EngineDisplay, EventLoop<()>), WindowCreationError> {
     let event_loop = EventLoop::builder().build()?;
 
     let window_attributes = opts.window_attributes;

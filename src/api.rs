@@ -17,6 +17,7 @@ use bevy_math::{UVec2, Vec2};
 use egui_glium::egui_winit::egui::Context;
 #[cfg(feature = "gamepad")]
 use gilrs_input_helper::GilrsInputHelper;
+use glium::texture::TextureCreationError;
 use glium::{
     Texture2d,
     texture::DepthTexture2d,
@@ -429,7 +430,10 @@ pub fn end_rendering_to_texture() {
     get_state().end_rendering_to_texture();
 }
 
-pub(crate) fn empty_render_texture(width: u32, height: u32) -> anyhow::Result<RenderTexture> {
+pub(crate) fn empty_render_texture(
+    width: u32,
+    height: u32,
+) -> Result<RenderTexture, TextureCreationError> {
     let state = get_state();
     let facade = &state.display;
     let texture = Texture2d::empty(facade, width, height)?;
@@ -441,7 +445,10 @@ pub(crate) fn empty_render_texture(width: u32, height: u32) -> anyhow::Result<Re
     })
 }
 
-pub fn create_empty_render_texture(width: u32, height: u32) -> anyhow::Result<RenderTextureRef> {
+pub fn create_empty_render_texture(
+    width: u32,
+    height: u32,
+) -> Result<RenderTextureRef, TextureCreationError> {
     Ok(empty_render_texture(width, height)?.create())
 }
 

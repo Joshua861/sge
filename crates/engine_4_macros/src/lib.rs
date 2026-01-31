@@ -1,5 +1,10 @@
+use std::fs::{self, ReadDir};
+
+use glob::glob;
+use heck::{ToShoutySnakeCase, ToSnakeCase};
+use image::ImageFormat;
 use proc_macro::TokenStream;
-use proc_macro2::TokenStream as Ts2;
+use proc_macro2::{Span, TokenStream as Ts2};
 use quote::quote;
 use syn::parse::Parse;
 use syn::{Expr, Ident, LitStr, Token, Visibility, parse_macro_input};
@@ -200,29 +205,69 @@ pub fn gen_ref_type(input: TokenStream) -> TokenStream {
     .into()
 }
 
+fn ext_to_format(ext: &str) -> Option<ImageFormat> {
+    match ext {
+        "png" => Some(ImageFormat::Png),
+        "jpg" | "jpeg" => Some(ImageFormat::Jpeg),
+        "gif" => Some(ImageFormat::Gif),
+        "webp" => Some(ImageFormat::WebP),
+        "pnm" | "pbm" | "pgm" | "ppm" | "pam" => Some(ImageFormat::Pnm),
+
+        "tiff" | "tif" => Some(ImageFormat::Tiff),
+        "tga" => Some(ImageFormat::Tga),
+        "dds" => Some(ImageFormat::Dds),
+        "bmp" => Some(ImageFormat::Bmp),
+        "ico" => Some(ImageFormat::Ico),
+        "hdr" => Some(ImageFormat::Hdr),
+        "exr" => Some(ImageFormat::OpenExr),
+        "ff" | "farbfeld" => Some(ImageFormat::Farbfeld),
+        "avif" => Some(ImageFormat::Avif),
+        "qoi" => Some(ImageFormat::Qoi),
+        _ => None,
+    }
+}
+
+fn format_to_tokens(format: ImageFormat) -> Ts2 {
+    match format {
+        ImageFormat::Avif => quote! { ImageFormat::Avif },
+        ImageFormat::Bmp => quote! { ImageFormat::Bmp },
+        ImageFormat::Dds => quote! { ImageFormat::Dds },
+        ImageFormat::Farbfeld => quote! { ImageFormat::Farbfeld },
+        ImageFormat::Gif => quote! { ImageFormat::Gif },
+        ImageFormat::Hdr => quote! { ImageFormat::Hdr },
+        ImageFormat::Ico => quote! { ImageFormat::Ico },
+        ImageFormat::Jpeg => quote! { ImageFormat::Jpeg },
+        ImageFormat::OpenExr => quote! { ImageFormat::OpenExr },
+        ImageFormat::Pnm => quote! { ImageFormat::Pnm },
+        ImageFormat::Png => quote! { ImageFormat::Png },
+        ImageFormat::Qoi => quote! { ImageFormat::Qoi },
+        ImageFormat::Tga => quote! { ImageFormat::Tga },
+        ImageFormat::Tiff => quote! { ImageFormat::Tiff },
+        ImageFormat::WebP => quote! { ImageFormat::WebP },
+        _ => panic!(),
+    }
+}
+
 #[proc_macro]
 pub fn include_texture(input: TokenStream) -> TokenStream {
     let path = parse_macro_input!(input as LitStr);
     let path_value = path.value();
 
     let format = match path_value.rsplit('.').next() {
-        Some("png") => quote! { ImageFormat::Png },
-        Some("jpg") | Some("jpeg") => quote! { ImageFormat::Jpeg },
-        Some("gif") => quote! { ImageFormat::Gif },
-        Some("webp") => quote! { ImageFormat::WebP },
-        Some("pnm") | Some("pbm") | Some("pgm") | Some("ppm") | Some("pam") => {
-            quote! { ImageFormat::Pnm }
-        }
-        Some("tiff") | Some("tif") => quote! { ImageFormat::Tiff },
-        Some("tga") => quote! { ImageFormat::Tga },
-        Some("dds") => quote! { ImageFormat::Dds },
-        Some("bmp") => quote! { ImageFormat::Bmp },
-        Some("ico") => quote! { ImageFormat::Ico },
-        Some("hdr") => quote! { ImageFormat::Hdr },
-        Some("exr") => quote! { ImageFormat::OpenExr },
-        Some("ff") | Some("farbfeld") => quote! { ImageFormat::Farbfeld },
-        Some("avif") => quote! { ImageFormat::Avif },
-        Some("qoi") => quote! { ImageFormat::Qoi },
+        Some(ext) => match ext_to_format(ext) {
+            Some(format) => format_to_tokens(format),
+            None => {
+                return syn::Error::new(
+                    path.span(),
+                    format!(
+                        "Unsupported or unknown image format for file: {}",
+                        path_value
+                    ),
+                )
+                .to_compile_error()
+                .into();
+            }
+        },
         _ => {
             return syn::Error::new(
                 path.span(),
@@ -241,4 +286,142 @@ pub fn include_texture(input: TokenStream) -> TokenStream {
     };
 
     TokenStream::from(expanded)
+}
+
+struct SpritesheetParams {
+    var_name: Ident,
+    path: String,
+}
+
+impl Parse for SpritesheetParams {
+    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+        let var_name = input.parse()?;
+        input.parse::<Token![,]>()?;
+        let path: LitStr = input.parse()?;
+
+        Ok(Self {
+            path: path.value(),
+            var_name,
+        })
+    }
+}
+
+struct ImageData {
+    bytes: Vec<u8>,
+    format: ImageFormat,
+    name: String,
+}
+
+#[proc_macro]
+pub fn include_spritesheet(input: TokenStream) -> TokenStream {
+    let params = parse_macro_input!(input as SpritesheetParams);
+    let var_name = params.var_name;
+
+    // Get the crate root directory
+    let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR not set");
+
+    // Construct the full path
+    let full_path = std::path::Path::new(&manifest_dir).join(&params.path);
+
+    // Better error handling
+    let dir = match fs::read_dir(&full_path) {
+        Ok(d) => d,
+        Err(e) => {
+            return syn::Error::new(
+                Span::call_site(),
+                format!("Failed to read directory '{}': {}", full_path.display(), e),
+            )
+            .to_compile_error()
+            .into();
+        }
+    };
+
+    let mut images: Vec<ImageData> = vec![];
+
+    for entry in dir {
+        let entry = match entry {
+            Ok(e) => e,
+            Err(_) => continue,
+        };
+
+        let path = entry.path();
+
+        // Skip directories
+        if !path.is_file() {
+            continue;
+        }
+
+        if let Some(ext) = path
+            .extension()
+            .and_then(|e| e.to_str())
+            .map(|e| e.to_string())
+        {
+            if let Some(format) = ext_to_format(&ext) {
+                let name = match path.file_name() {
+                    Some(n) => n.to_string_lossy().to_string(),
+                    None => continue,
+                };
+
+                let bytes = match fs::read(&path) {
+                    Ok(b) => b,
+                    Err(e) => {
+                        return syn::Error::new(
+                            Span::call_site(),
+                            format!("Failed to read file '{}': {}", path.display(), e),
+                        )
+                        .to_compile_error()
+                        .into();
+                    }
+                };
+
+                images.push(ImageData {
+                    bytes,
+                    format,
+                    name,
+                });
+            }
+        }
+    }
+
+    let mut const_entries = vec![];
+    let mut add_entries = vec![];
+
+    for (i, image) in images.iter().enumerate() {
+        let const_name = image.name.to_shouty_snake_case();
+        let const_ident = Ident::new(&const_name, Span::call_site());
+        let image_name = format!("{}_image", image.name.to_snake_case());
+        let image_ident = Ident::new(&image_name, Span::call_site());
+        let bytes = &image.bytes;
+        let format = image.format;
+        let format_tokens = format_to_tokens(format);
+
+        const_entries.push(quote! {
+            let #image_ident = engine_4::prelude::load_image(&[#(#bytes),*], #format_tokens).unwrap();
+            let #const_ident: engine_4::prelude::SpriteKey = engine_4::prelude::SpriteKey(#i);
+        });
+        add_entries.push(quote! { spritesheet.cache_sprite_with_key(#const_ident, #image_ident); })
+    }
+
+    let len = add_entries.len();
+
+    quote! {
+        {
+            use engine_4::prelude::*;
+
+            #(#const_entries)*
+
+            let #var_name = {
+                let spritesheet = create_spritesheet().unwrap();
+
+                #(#add_entries)*
+
+                spritesheet.set_next_key(#len);
+
+                spritesheet
+            };
+
+            #var_name
+        }
+    }
+    .into()
 }

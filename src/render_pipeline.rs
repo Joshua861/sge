@@ -64,7 +64,7 @@ impl From<Color> for ClearColor {
     }
 }
 
-// i dont care
+// i dont care 😝😝😝😝😝
 #[allow(clippy::large_enum_variant)]
 pub enum RenderStep {
     Drawing(DrawQueues),
@@ -245,7 +245,8 @@ impl RenderPipeline {
                     frame.clear_depth(1.0);
                 }
                 ClearColor::Clear(c) => {
-                    frame.clear_color(c.r, c.g, c.b, c.a);
+                    let lin = c.to_linear();
+                    frame.clear_color(lin.r, lin.g, lin.b, lin.a);
                     frame.clear_depth(1.0);
                 }
             }

@@ -10,7 +10,7 @@
 - [X] Logging system, that can log to stdout/stderr (like env_logger), or to an
   onscreen thingy.
 - [X] functions to change speed of physics time
-- [ ] FIX: if you render too much text it just gives up and stops rendering any
+- [X] FIX: if you render too much text it just gives up and stops rendering any
   more text, but just for that one draw queue
   - no more textures are drawn, not just ones from the same texture atlas. nothing.
 - [ ] probably split into multiple crates
@@ -99,11 +99,17 @@
     - [X] So you could have structs with configurable interpolation.
   - [ ] sprite animation
     - (needs spritesheets/atlasses) ✅
+  - [ ] maybe have my own proc-macro based compiler to turn a folder of sprites
+    into a sprite sheet, indexable by a perfect &'static str hash table
+    - [ ] would be nice to also have a type safe enum based approach, idk how i'd
+      do that though. automatically generate the enum from the file names,
+      converted to camel case? that would certainly be nice, and you'd get
+      compiler errors when you update the name of one of the files or remove a sprite.
   - [ ] https://docs.rs/macroquad/latest/macroquad/experimental/animation/index.html
   - [ ] Animation state machine
   - [ ] pause animation controller
 - [ ] egui_dock
-- [ ] winit input helper fork add precise mouse movemnt so that i can have all the
+- [X] winit input helper fork add precise mouse movemnt so that i can have all the
   positions of it in the paint program for better curves
 - [ ] image texture pair struct with builtin methods and maybe a `dirty`
 - [ ] make implementing ui like clicking and hovering easier
@@ -165,16 +171,19 @@
 - [ ] is this ECS?
   - [ ] this could totally work lets be REAL https://docs.rs/hecs/latest/hecs/
 - [ ] lua scripting support
-- [ ] more warnings and better errors
+- [X] replace anyhow with concrete error types
+- [X] more warnings and better errors
 - [X] Colors from hex code
 - [X] Custom 3D material example
 - [X] Batch textures
-- [ ] Arbritrary transform of 2D shapes
-  - [ ] Transform2D struct
+- [-] Arbritrary transform of 2D shapes
+  - [X] Transform2D struct
+  - [ ] functions to specify arbritrary transform of 2d shapes
 - [ ] 2D & 3D wireframe mode. automatic. can disregard material (maybe? vertex shaders?)
 - [ ] Memory/GPU profiler
 - [ ] Asset packing
   - [ ] and loading
+  - [ ] a build system???
   - [ ] and a loading screen? customizable maybe just tell give the user some
     statistics about progress and they can render it themselves. sounds good to me
 - [ ] benchmarks
@@ -185,6 +194,7 @@
   macro thing that detects the difference between the state of the struct
   between frames and automatically handles that between players
   - [ ] very high trust level. could be improved. very simple though
+  - [ ] so, so simple
 - [ ] The... web :(
 - [ ] Mobile :(
 - [ ] Sound

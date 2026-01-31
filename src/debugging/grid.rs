@@ -6,7 +6,8 @@ use crate::{
     prelude::{Material, Mesh, Object3D, Object3DRef, Transform3D, load_program},
     programs::ProgramRef,
 };
-use glium::{IndexBuffer, VertexBuffer, implement_vertex};
+use error_union::ErrorUnion;
+use glium::{IndexBuffer, ProgramCreationError, VertexBuffer, implement_vertex};
 
 implement_vertex!(GridVertex, position);
 #[derive(Copy, Clone, Debug)]
@@ -14,7 +15,14 @@ pub struct GridVertex {
     pub position: [f32; 3],
 }
 
-pub fn create_infinite_grid() -> anyhow::Result<Object3DRef> {
+#[derive(ErrorUnion, Debug)]
+pub enum GridCreationError {
+    VertexBuffer(glium::vertex::BufferCreationError),
+    IndexBuffer(glium::index::BufferCreationError),
+    Program(glium::program::ProgramCreationError),
+}
+
+pub fn create_infinite_grid() -> Result<Object3DRef, GridCreationError> {
     let state = get_state();
     let display = &state.display;
 
@@ -87,7 +95,7 @@ pub fn create_infinite_grid() -> anyhow::Result<Object3DRef> {
     Ok(object.create())
 }
 
-fn load_grid_program() -> anyhow::Result<ProgramRef> {
+fn load_grid_program() -> Result<ProgramRef, ProgramCreationError> {
     let vertex_shader = include_str!("../../assets/shaders/grid/vertex.glsl");
     let fragment_shader = include_str!("../../assets/shaders/grid/fragment.glsl");
 

@@ -14,6 +14,8 @@ use config::EngineCreationOptions;
 use debugging::DebugInfo;
 pub use draw_queue_2d::Vertex3D;
 use egui_glium::{EguiGlium, egui_winit::egui::ViewportId};
+pub use engine_color as color;
+use error_union::ErrorUnion;
 use fps_ticker::Fps;
 use glium::Program;
 #[cfg(feature = "profile")]
@@ -46,6 +48,7 @@ use text_rendering::EngineFont;
 use textures::EngineTexture;
 use textures::init_textures;
 use tunes::engine::AudioEngine;
+use ui::SomeNode;
 use user_storage::UserStorage;
 use window::init_window;
 
@@ -53,7 +56,6 @@ pub mod animation;
 pub mod api;
 pub mod camera;
 pub mod collisions;
-pub mod color;
 pub mod config;
 #[cfg(feature = "debugging")]
 mod debugging;
@@ -75,6 +77,7 @@ mod slop;
 mod text_rendering;
 mod textures;
 pub mod transform;
+pub mod ui;
 mod user_storage;
 mod utils;
 pub mod window;
@@ -141,6 +144,7 @@ pub(crate) struct EngineStorage {
     meshes: Vec<Mesh>,
     texture_atlasses: Vec<TextureAtlas>,
     images: Vec<Image>,
+    ui_nodes: Vec<SomeNode>,
 }
 
 impl EngineStorage {
@@ -155,18 +159,27 @@ impl EngineStorage {
             meshes: vec![],
             texture_atlasses: vec![],
             images: vec![],
+            ui_nodes: vec![],
         }
     }
 }
 
-pub fn init(title: impl AsRef<str>) -> anyhow::Result<()> {
+pub fn init(title: impl AsRef<str>) -> Result<(), InitError> {
     let opts = EngineCreationOptions::builder()
         .title(title.as_ref().to_string())
         .build();
     init_custom(opts)
 }
 
-pub fn init_custom(opts: config::Opts) -> anyhow::Result<()> {
+#[derive(ErrorUnion, Debug)]
+pub enum InitError {
+    SetLogger(log::SetLoggerError),
+    WindowCreation(window::WindowCreationError),
+    Program(glium::ProgramCreationError),
+    Audio(tunes::error::TunesError),
+}
+
+pub fn init_custom(opts: config::Opts) -> Result<(), InitError> {
     let opts = opts.build();
     logging::init_engine_logger()?;
     get_logger().min_log_level = opts.min_log_level;
@@ -189,7 +202,7 @@ pub fn init_custom(opts: config::Opts) -> anyhow::Result<()> {
         }
         Err(e) => {
             error!("FATAL: Could not initialize window: {e}");
-            return Err(e);
+            return Err(e.into());
         }
     };
 

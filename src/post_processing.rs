@@ -1,5 +1,11 @@
 use bevy_math::Vec2;
-use glium::{Program, Surface, framebuffer::SimpleFrameBuffer, texture::Texture2d, uniform};
+use error_union::ErrorUnion;
+use glium::{
+    Program, Surface,
+    framebuffer::SimpleFrameBuffer,
+    texture::{Texture2d, TextureCreationError},
+    uniform,
+};
 
 use crate::{EngineDisplay, color::Color, get_state, programs::ProgramRef, textures::TextureRef};
 
@@ -31,13 +37,20 @@ pub enum PostProcessingEffect {
     },
 }
 
+#[derive(ErrorUnion, Debug)]
+pub enum PostProcessingError {
+    Texture(TextureCreationError),
+    Quad(RenderFullscreenQuadError),
+    Framebuffer(glium::framebuffer::ValidationError),
+}
+
 impl PostProcessingEffect {
     pub fn apply<T: Surface>(
         &self,
         source: TextureRef,
         target: &mut T,
         screen_size: Vec2,
-    ) -> anyhow::Result<()> {
+    ) -> Result<(), PostProcessingError> {
         let state = get_state();
         let display = &state.display;
 
@@ -196,16 +209,26 @@ impl PostProcessingEffect {
     }
 }
 
-fn create_temp_texture(display: &EngineDisplay, size: Vec2) -> anyhow::Result<Texture2d> {
+fn create_temp_texture(
+    display: &EngineDisplay,
+    size: Vec2,
+) -> Result<Texture2d, TextureCreationError> {
     let texture = Texture2d::empty(display, size.x as u32, size.y as u32)?;
     Ok(texture)
+}
+
+#[derive(ErrorUnion, Debug)]
+pub enum RenderFullscreenQuadError {
+    VertexBuffer(glium::vertex::BufferCreationError),
+    IndexBuffer(glium::index::BufferCreationError),
+    Draw(glium::DrawError),
 }
 
 pub(crate) fn render_fullscreen_quad<T: Surface, U: glium::uniforms::Uniforms>(
     target: &mut T,
     program: &Program,
     uniforms: &U,
-) -> anyhow::Result<()> {
+) -> Result<(), RenderFullscreenQuadError> {
     use crate::shapes_2d::QUAD_INDICES;
     use crate::textures::TexturedVertex2D;
     use glium::{IndexBuffer, VertexBuffer};

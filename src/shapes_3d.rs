@@ -153,9 +153,7 @@ pub fn cube_wireframe_flat(center: Vec3, size: f32, thickness: f32, color: Color
 }
 
 pub fn cuboid(center: Vec3, size: Vec3) -> MeshRef {
-    Cuboid::new(center, size, Mat3::IDENTITY)
-        .create_mesh()
-        .create()
+    Cuboid::new(center, size).create_mesh().create()
 }
 
 pub fn cube(center: Vec3, size: f32) -> MeshRef {
@@ -163,7 +161,7 @@ pub fn cube(center: Vec3, size: f32) -> MeshRef {
 }
 
 pub fn cuboid_with_orientation(center: Vec3, size: Vec3, orientation: Mat3) -> MeshRef {
-    Cuboid::new(center, size, orientation)
+    Cuboid::new_with_orientation(center, size, orientation)
         .create_mesh()
         .create()
 }
@@ -204,9 +202,37 @@ pub struct Cuboid {
 }
 
 impl Cuboid {
-    pub fn new(center: Vec3, size: Vec3, orientation: Mat3) -> Self {
+    pub fn new(center: Vec3, size: Vec3) -> Self {
         Self {
             center,
+            extents: size * 0.5,
+            orientation: Mat3::IDENTITY,
+        }
+    }
+
+    pub fn new_with_orientation(center: Vec3, size: Vec3, orientation: Mat3) -> Self {
+        Self {
+            center,
+            extents: size * 0.5,
+            orientation,
+        }
+    }
+
+    pub fn from_negative_corner(negative_corner: Vec3, size: Vec3) -> Self {
+        Self {
+            center: negative_corner + size * 0.5,
+            extents: size * 0.5,
+            orientation: Mat3::IDENTITY,
+        }
+    }
+
+    pub fn from_negative_corner_with_orientation(
+        negative_corner: Vec3,
+        size: Vec3,
+        orientation: Mat3,
+    ) -> Self {
+        Self {
+            center: negative_corner + size * 0.5,
             extents: size * 0.5,
             orientation,
         }

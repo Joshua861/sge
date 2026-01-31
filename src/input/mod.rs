@@ -1,4 +1,5 @@
 use bevy_math::{UVec2, Vec2, vec2};
+use error_union::Union;
 #[cfg(feature = "gamepad")]
 use gilrs_input_helper::GilrsInputHelper;
 use glium::winit;
@@ -22,7 +23,7 @@ pub(crate) struct Input {
     pub gamepad: GilrsInputHelper,
 }
 
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Union)]
 pub enum Button {
     Mouse(MouseButton),
     Keyboard(KeyCode),
@@ -59,18 +60,6 @@ impl Button {
         } else {
             None
         }
-    }
-}
-
-impl From<MouseButton> for Button {
-    fn from(value: MouseButton) -> Self {
-        Self::Mouse(value)
-    }
-}
-
-impl From<KeyCode> for Button {
-    fn from(value: KeyCode) -> Self {
-        Self::Keyboard(value)
     }
 }
 

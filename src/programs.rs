@@ -1,5 +1,5 @@
 use engine_4_macros::gen_ref_type;
-use glium::Program;
+use glium::{Program, ProgramCreationError};
 
 use crate::{EngineDisplay, EngineStorage, get_state};
 
@@ -33,7 +33,7 @@ gen_ref_type!(Program, ProgramRef, programs);
 pub(crate) fn init_programs(
     display: &EngineDisplay,
     storage: &mut EngineStorage,
-) -> anyhow::Result<()> {
+) -> Result<(), ProgramCreationError> {
     let program = include_program_internal!(
         display,
         "../assets/shaders/flat/vertex.glsl",
@@ -86,7 +86,7 @@ pub(crate) fn init_programs(
     Ok(())
 }
 
-pub fn load_program(vertex: &str, fragment: &str) -> anyhow::Result<ProgramRef> {
+pub fn load_program(vertex: &str, fragment: &str) -> Result<ProgramRef, ProgramCreationError> {
     let state = get_state();
     let program = Program::from_source(&state.display, vertex, fragment, None)?;
     let id = state.storage.programs.len();

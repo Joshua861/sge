@@ -2,6 +2,7 @@ use std::io::Cursor;
 
 use bevy_math::{UVec2, Vec2};
 use engine_4_macros::gen_ref_type;
+use error_union::ErrorUnion;
 use glium::{
     Texture2d, implement_vertex,
     texture::{RawImage2d, TextureCreationError},
@@ -61,7 +62,7 @@ pub fn init_textures(_storage: &mut EngineStorage, _display: &EngineDisplay) {
     // storage.textures.push(dummy);
 }
 
-pub fn load_texture(bytes: &[u8], format: ImageFormat) -> anyhow::Result<TextureRef> {
+pub fn load_texture(bytes: &[u8], format: ImageFormat) -> Result<TextureRef, LoadTextureError> {
     Ok(EngineTexture::load_from_bytes(bytes, format)?.create())
 }
 
@@ -73,12 +74,18 @@ pub struct EngineTexture {
     pub minify_filter: MinifySamplerFilter,
 }
 
+#[derive(ErrorUnion, Debug)]
+pub enum LoadTextureError {
+    Image(image::error::ImageError),
+    Engine(TextureCreationError),
+}
+
 impl EngineTexture {
     pub fn static_gl_texture(&'static self) -> &'static Texture2d {
         &self.gl_texture
     }
 
-    pub fn load_from_bytes(bytes: &[u8], format: ImageFormat) -> anyhow::Result<Self> {
+    pub fn load_from_bytes(bytes: &[u8], format: ImageFormat) -> Result<Self, LoadTextureError> {
         let image = image::load(Cursor::new(bytes), format)?.to_rgba8();
         let image_dimensions = image.dimensions();
         let image = RawImage2d::from_raw_rgba(image.into_raw(), image_dimensions);

@@ -1,7 +1,8 @@
 use std::io::Cursor;
 
-use crate::utils::EngineCreate;
+use crate::utils::{BufferError, EngineCreate};
 use engine_4_macros::gen_ref_type;
+use error_union::ErrorUnion;
 use glium::{IndexBuffer, VertexBuffer};
 use obj::{FromRawVertex, load_obj, raw::object::Polygon};
 
@@ -20,32 +21,39 @@ pub struct Object3D {
     pub transform: Transform3D,
 }
 
+#[derive(ErrorUnion, Debug)]
+pub enum ObjectLoadingError {
+    VertexBuffer(glium::vertex::BufferCreationError),
+    IndexBuffer(glium::index::BufferCreationError),
+    Obj(obj::ObjError),
+}
+
 impl Object3D {
-    pub fn from_obj(src: &str) -> anyhow::Result<Object3DRef> {
+    pub fn from_obj(src: &str) -> Result<Object3DRef, ObjectLoadingError> {
         Self::from_obj_with_material(src, DEFAULT_MATERIAL)
     }
 
-    pub fn from_obj_bytes(data: &[u8]) -> anyhow::Result<Object3DRef> {
+    pub fn from_obj_bytes(data: &[u8]) -> Result<Object3DRef, ObjectLoadingError> {
         Self::from_obj_bytes_with_material(data, DEFAULT_MATERIAL)
     }
 
-    pub fn from_obj_with_material(src: &str, material: MaterialRef) -> anyhow::Result<Object3DRef> {
+    pub fn from_obj_with_material(
+        src: &str,
+        material: MaterialRef,
+    ) -> Result<Object3DRef, ObjectLoadingError> {
         Self::from_obj_bytes_with_material(src.as_bytes(), material)
     }
 
     pub fn from_obj_bytes_with_material(
         data: &[u8],
         material: MaterialRef,
-    ) -> anyhow::Result<Object3DRef> {
+    ) -> Result<Object3DRef, ObjectLoadingError> {
         let state = get_state();
         let buf = Cursor::new(data);
         let obj = load_obj::<MaterialVertex3D, _, _>(buf)?;
 
         let vertices = obj.vertices;
         let indices = obj.indices;
-
-        // dbg!(&vertices);
-        // dbg!(&indices);
 
         let vertices = VertexBuffer::new(&state.display, &vertices)?;
         let indices = IndexBuffer::new(
@@ -288,7 +296,7 @@ impl Object3DRef {
     }
 }
 
-pub fn test_triangle() -> anyhow::Result<Object3DRef> {
+pub fn test_triangle() -> Result<Object3DRef, BufferError> {
     let vertices = vec![
         MaterialVertex3D {
             position: [0.0, 1.0, 0.0],
@@ -309,16 +317,10 @@ pub fn test_triangle() -> anyhow::Result<Object3DRef> {
 
     let indices = vec![0, 1, 2];
 
-    let state = get_state();
-    let vertices = VertexBuffer::new(&state.display, &vertices)?;
-    let indices = IndexBuffer::new(
-        &state.display,
-        glium::index::PrimitiveType::TrianglesList,
-        &indices,
-    )?;
+    let mesh = Mesh::from_points(vertices, indices)?;
 
     let triangle = Object3D {
-        mesh: Mesh { vertices, indices }.create(),
+        mesh,
         material: create_flat_material(Color::RED_500),
         transform: Transform3D::IDENTITY,
     };
@@ -335,7 +337,7 @@ impl Mesh {
     pub(crate) fn from_points_internal(
         vertices: Vec<MaterialVertex3D>,
         indices: Vec<u32>,
-    ) -> anyhow::Result<Self> {
+    ) -> Result<Self, BufferError> {
         let state = get_state();
         let vertices = VertexBuffer::new(&state.display, &vertices)?;
         let indices = IndexBuffer::new(
@@ -350,7 +352,7 @@ impl Mesh {
     pub fn from_points(
         vertices: Vec<MaterialVertex3D>,
         indices: Vec<u32>,
-    ) -> anyhow::Result<MeshRef> {
+    ) -> Result<MeshRef, BufferError> {
         Self::from_points_internal(vertices, indices).map(|m| m.create())
     }
 }

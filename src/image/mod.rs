@@ -3,6 +3,7 @@ use std::marker::PhantomData;
 use crate::get_state;
 use bevy_math::{USizeVec2, UVec2};
 use engine_4_macros::gen_ref_type;
+use thiserror::Error;
 
 use crate::color::u8::Pixel;
 use crate::utils::usize_rect::USizeRect;
@@ -14,6 +15,12 @@ pub struct Image {
     pub width: usize,
     pub height: usize,
     pub buf: Vec<Pixel>,
+}
+
+#[derive(Debug, Error)]
+pub enum EngineImageError {
+    #[error("Buffer size mismatch, expected {0} bytes, found {1} bytes")]
+    BufferSizeMismatch(usize, usize),
 }
 
 gen_ref_type!(Image, ImageRef, images);
@@ -32,12 +39,14 @@ impl Image {
         Self { width, height, buf }
     }
 
-    pub fn from_bytes(width: usize, height: usize, buf: Vec<u8>) -> anyhow::Result<Self> {
+    pub fn from_bytes(width: usize, height: usize, buf: Vec<u8>) -> Result<Self, EngineImageError> {
         let len = buf.len();
 
         if width * height * 4 != len {
-            dbg!(width, height, len);
-            Err(anyhow::anyhow!("Image size mismatch"))
+            Err(EngineImageError::BufferSizeMismatch(
+                width * height * 4,
+                len,
+            ))
         } else {
             let size = width * height;
             let ptr = buf.as_ptr() as *const Pixel;

@@ -262,6 +262,8 @@ impl Opts {
 
             if let Some(transparent) = self.window_transparent {
                 default.transparent = transparent;
+            } else {
+                default.transparent = true;
             }
 
             if let Some(blur) = self.window_blur {

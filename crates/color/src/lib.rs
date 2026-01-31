@@ -1,8 +1,15 @@
+extern crate bevy_math;
+extern crate egui_glium;
+extern crate image;
+extern crate palette;
+extern crate phf;
+extern crate trig_const;
+
 use std::f64::consts::PI;
 
 use bevy_math::Vec4;
 use egui_glium::egui_winit::egui::Color32;
-use palette::{Hsl, IntoColor, LinSrgb, Oklch, Srgb};
+use palette::{Hsl, IntoColor, LinSrgb, LinSrgba, Oklch, Srgb, Srgba};
 use trig_const::{cos, sin};
 use u8::Pixel;
 
@@ -198,6 +205,11 @@ impl Color {
     #[inline]
     pub fn blend_halfway(self, other: Color) -> Color {
         Self::blend_two_halfway(self, other)
+    }
+
+    pub fn to_linear(self) -> Color {
+        let lin: LinSrgba = Srgba::new(self.r, self.g, self.b, self.a).into_color();
+        Self::from_rgba(lin.red, lin.green, lin.blue, lin.alpha)
     }
 }
 

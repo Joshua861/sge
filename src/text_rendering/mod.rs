@@ -3,6 +3,7 @@ use std::{collections::HashMap, hash::Hash};
 use crate::utils::EngineCreate;
 use bevy_math::{IVec2, Rect, Vec2};
 use engine_4_macros::gen_ref_type;
+use error_union::ErrorUnion;
 use fontdue::{Metrics, layout::TextStyle};
 use glium::uniforms::{MagnifySamplerFilter, MinifySamplerFilter};
 
@@ -201,18 +202,23 @@ impl FontRef {
     }
 }
 
+#[derive(ErrorUnion, Debug)]
+pub enum FontError {
+    Fontdue(&'static str),
+    Texture(glium::texture::TextureCreationError),
+}
+
 impl EngineFont {
-    pub(crate) fn load_from_bytes(bytes: &[u8]) -> anyhow::Result<EngineFont> {
+    pub(crate) fn load_from_bytes(bytes: &[u8]) -> Result<EngineFont, FontError> {
         Self::load_from_bytes_with_atlas(TextureAtlas::new()?, bytes)
     }
 
     pub(crate) fn load_from_bytes_with_atlas(
         atlas: TextureAtlas,
         bytes: &[u8],
-    ) -> anyhow::Result<Self> {
+    ) -> Result<Self, FontError> {
         Ok(Self {
-            font: fontdue::Font::from_bytes(bytes, fontdue::FontSettings::default())
-                .map_err(|e| anyhow::anyhow!(e))?,
+            font: fontdue::Font::from_bytes(bytes, fontdue::FontSettings::default())?,
             characters: HashMap::new(),
             atlas,
         })
@@ -343,7 +349,7 @@ impl EngineFont {
     }
 }
 
-pub fn create_ttf_font(bytes: &[u8]) -> anyhow::Result<FontRef> {
+pub fn create_ttf_font(bytes: &[u8]) -> Result<FontRef, FontError> {
     EngineFont::load_from_bytes(bytes).map(|f| f.create())
 }
 
@@ -369,8 +375,8 @@ impl Default for TextDrawParams {
     }
 }
 
-pub(crate) fn init_fonts() {
-    let _ = load_font(include_bytes!("../assets/fonts/jetbrains.ttf"));
+pub(crate) fn init_fonts() -> Result<(), FontError> {
+    load_font(include_bytes!("../../assets/fonts/jetbrains.ttf")).map(|_| ())
 }
 
 fn draw_text_to(
@@ -488,7 +494,7 @@ pub fn draw_text_size_world(text: impl AsRef<str>, position: Vec2, size: usize) 
     )
 }
 
-pub fn load_font(bytes: &[u8]) -> Result<FontRef, anyhow::Error> {
+pub fn load_font(bytes: &[u8]) -> Result<FontRef, FontError> {
     EngineFont::load_from_bytes(bytes).map(|f| f.create())
 }
 

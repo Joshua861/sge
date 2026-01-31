@@ -12,6 +12,7 @@ use crate::utils::usize_rect::USizeRect;
 
 use bevy_math::{USizeVec2, Vec2};
 use engine_4_macros::gen_ref_type;
+use error_union::ErrorUnion;
 use glium::{
     texture::{RawImage2d, TextureCreationError},
     uniforms::{MagnifySamplerFilter, MinifySamplerFilter},
@@ -37,7 +38,7 @@ pub struct TextureAtlas {
 gen_ref_type!(TextureAtlas, TextureAtlasRef, texture_atlasses);
 
 #[derive(Clone, Copy, PartialEq, Eq, Ord, PartialOrd, Hash, Debug)]
-pub struct SpriteKey(usize);
+pub struct SpriteKey(pub usize);
 
 impl TextureAtlas {
     const DEFAULT_WIDTH: usize = 512;
@@ -141,7 +142,11 @@ impl TextureAtlas {
         })
     }
 
-    fn cache_sprite_with_key(&mut self, key: SpriteKey, sprite: &Image) {
+    pub fn set_next_key(&mut self, next_key: usize) {
+        self.next_id = next_key;
+    }
+
+    pub fn cache_sprite_with_key(&mut self, key: SpriteKey, sprite: &Image) {
         let dim = sprite.dimensions();
 
         let x = if self.cursor.x + dim.x < self.image.width() {
@@ -318,7 +323,13 @@ pub fn create_spritesheet() -> Result<TextureAtlasRef, TextureCreationError> {
     TextureAtlas::new().map(|a| a.create())
 }
 
-pub fn load_image(bytes: &[u8], format: ImageFormat) -> anyhow::Result<ImageRef> {
+#[derive(ErrorUnion, Debug)]
+pub enum LoadImageError {
+    Image(image::error::ImageError),
+    Engine(crate::image::EngineImageError),
+}
+
+pub fn load_image(bytes: &[u8], format: ImageFormat) -> Result<ImageRef, LoadImageError> {
     let image = image::load(Cursor::new(bytes), format)?.to_rgba8();
     let dim = image.dimensions();
     Ok(Image::from_bytes(dim.0 as usize, dim.1 as usize, image.into_raw())?.create())
