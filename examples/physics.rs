@@ -172,7 +172,7 @@ fn main() -> anyhow::Result<()> {
         }
 
         let ui = {
-            use ui::*;
+            use ui::prelude::*;
 
             Fit::new(Fill::new(
                 Color::NEUTRAL_600,

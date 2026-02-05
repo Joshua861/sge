@@ -1,5 +1,5 @@
 use engine_4::prelude::*;
-use engine_4::ui::*;
+use engine_4::ui::prelude::*;
 
 fn main() -> anyhow::Result<()> {
     init("UI")?;

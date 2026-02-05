@@ -78,19 +78,48 @@ fn main() -> anyhow::Result<()> {
             }
         }
 
+        let cursor_pos = cursor_pos();
         for y in 0..100 {
             for x in 0..100 {
                 let x = x as f32 * 100.0;
                 let y = y as f32 * 100.0;
-                let mouse_pos = screen_to_world(cursor_pos());
+                let mouse_pos = screen_to_world(cursor_pos);
                 let mouse_pos = collisions::Point::new(mouse_pos);
-                let color = if collisions::circle(x, y, 50.0).intersects_with(&mouse_pos) {
+                let is_hovered = collisions::circle(x, y, 50.0).intersects_with(&mouse_pos);
+
+                let color = if is_hovered {
                     Color::RED_500
                 } else {
                     Color::NEUTRAL_500
                 };
 
-                draw_circle_world(Vec2::new(x, y), 50.0, color);
+                let pos = Vec2::new(x, y);
+                draw_circle_world(pos, 50.0, color);
+
+                if is_hovered {
+                    use ui::prelude::*;
+                    let ui = Fit::new(Fill::new(
+                        Color::NEUTRAL_700,
+                        Padding::all(
+                            20.0,
+                            Col::new([
+                                Text::h2_no_padding("Circle"),
+                                Text::mono(format!("Id: {}", y as usize + x as usize / 100)),
+                                Text::mono(format!("Position: ({}, {})", x, y)),
+                                Text::mono(format!(
+                                    "Cursor: ({:.0}, {:.0})",
+                                    cursor_pos.x, cursor_pos.y
+                                )),
+                                EmptyBox::height(15.0),
+                                SizedBox::height(20.0, Fill::new(color, EMPTY)),
+                            ]),
+                        ),
+                    ));
+
+                    if cursor().is_some() {
+                        draw_ui_unbounded(ui, cursor_pos);
+                    }
+                }
             }
         }
 

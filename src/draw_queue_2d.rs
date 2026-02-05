@@ -243,7 +243,7 @@ impl DrawQueue2D {
             sprite_draws: Vec::new(),
             current_z: 0.0,
             start_z: 0.0,
-            z_increment: 0.0001,
+            z_increment: 0.001,
         }
     }
 

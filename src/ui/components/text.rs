@@ -93,52 +93,46 @@ impl Text {
         )
     }
 
+    pub fn h1_no_padding(text: impl ToString) -> UiRef {
+        Self {
+            text: text.to_string(),
+            font_size: 40,
+            font: SANS_DISPLAY,
+            ..Default::default()
+        }
+        .to_ref()
+    }
+
     pub fn h1(text: impl ToString) -> UiRef {
-        Padding::tblr(
-            20.0,
-            10.0,
-            0.0,
-            0.0,
-            Self {
-                text: text.to_string(),
-                font_size: 40,
-                font: SANS_DISPLAY,
-                ..Default::default()
-            }
-            .to_ref(),
-        )
+        Padding::tblr(20.0, 10.0, 0.0, 0.0, Self::h1_no_padding(text))
+    }
+
+    pub fn h2_no_padding(text: impl ToString) -> UiRef {
+        Self {
+            text: text.to_string(),
+            font_size: 32,
+            font: SANS_DISPLAY,
+            ..Default::default()
+        }
+        .to_ref()
     }
 
     pub fn h2(text: impl ToString) -> UiRef {
-        Padding::tblr(
-            20.0,
-            10.0,
-            0.0,
-            0.0,
-            Self {
-                text: text.to_string(),
-                font_size: 32,
-                font: SANS_DISPLAY,
-                ..Default::default()
-            }
-            .to_ref(),
-        )
+        Padding::tblr(20.0, 10.0, 0.0, 0.0, Self::h2_no_padding(text))
+    }
+
+    pub fn h3_no_padding(text: impl ToString) -> UiRef {
+        Self {
+            text: text.to_string(),
+            font_size: 26,
+            font: SANS_DISPLAY,
+            ..Default::default()
+        }
+        .to_ref()
     }
 
     pub fn h3(text: impl ToString) -> UiRef {
-        Padding::tblr(
-            20.0,
-            10.0,
-            0.0,
-            0.0,
-            Self {
-                text: text.to_string(),
-                font_size: 26,
-                font: SANS_DISPLAY,
-                ..Default::default()
-            }
-            .to_ref(),
-        )
+        Padding::tblr(20.0, 10.0, 0.0, 0.0, Self::h3_no_padding(text))
     }
 
     pub fn small(text: impl ToString) -> UiRef {

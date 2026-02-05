@@ -10,48 +10,18 @@ use engine_4_macros::gen_ref_type;
 use engine_color::Color;
 use glium::winit::event::MouseButton;
 
+/// base building blocks
+pub mod components;
+pub mod prelude;
+/// more complex widgets made of compoenents
+pub mod widgets;
+
 #[macro_export]
 macro_rules! id {
     () => {
         $crate::prelude::const_random::const_random!(usize)
     };
 }
-
-mod active_fill;
-mod border;
-mod box_fill;
-mod center;
-mod col;
-mod empty;
-mod fill;
-mod fit;
-mod hoverable;
-mod image;
-mod padding;
-mod progress_bar;
-mod rounded_fill;
-mod row;
-mod scroll;
-mod sized_box;
-mod text;
-
-pub use active_fill::*;
-pub use border::*;
-pub use box_fill::*;
-pub use center::*;
-pub use col::*;
-pub use empty::*;
-pub use fill::*;
-pub use fit::*;
-pub use hoverable::*;
-pub use image::*;
-pub use padding::*;
-pub use progress_bar::*;
-pub use rounded_fill::*;
-pub use row::*;
-pub use scroll::*;
-pub use sized_box::*;
-pub use text::*;
 
 pub struct UiState {
     frame: usize,
@@ -115,14 +85,33 @@ pub(crate) type Child = UiRef;
 
 impl Default for UiRef {
     fn default() -> Self {
-        EMPTY
+        components::EMPTY
     }
 }
 
 /// run at start of frame
 pub(crate) fn update_ui() {
     get_state().storage.ui_nodes.clear();
-    Empty.to_ref(); // set default (id: 0) node to Empty
+    components::Empty.to_ref(); // set default (id: 0) node to Empty
+}
+
+/// does not limit ui elements to the edge of the screen.
+///
+/// be very careful with this. make sure you only put sized nodes in here
+pub fn draw_ui_unbounded(node: UiRef, position: Vec2) -> Vec2 {
+    let area = Area {
+        top_left: position,
+        size: Vec2::INFINITY,
+    };
+
+    let state = get_state();
+    let state = UiState {
+        frame: state.frame_count,
+        delta_time: state.delta_time,
+        time: state.time,
+    };
+
+    node.node.draw(area, &state)
 }
 
 pub fn draw_ui(node: UiRef, position: Vec2) -> Vec2 {

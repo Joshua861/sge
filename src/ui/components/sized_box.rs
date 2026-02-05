@@ -1,5 +1,7 @@
 use core::f32;
 
+use bevy_math::vec2;
+
 use super::*;
 
 pub struct SizedBox {
@@ -47,9 +49,19 @@ impl SizedBox {
     }
 }
 
+fn inf_to_zero(n: f32) -> f32 {
+    match n {
+        f32::INFINITY => 0.0,
+        _ => n,
+    }
+}
+
 impl UiNode for SizedBox {
     fn preferred_dimensions(&self) -> Vec2 {
-        self.dimensions
+        vec2(
+            inf_to_zero(self.dimensions.x),
+            inf_to_zero(self.dimensions.y),
+        )
     }
 
     fn draw(&self, mut area: Area, state: &UiState) -> Vec2 {
@@ -142,5 +154,34 @@ impl UiNode for ConstrainedBox {
     fn draw(&self, mut area: Area, state: &UiState) -> Vec2 {
         area.size = self.transform_size(area.size);
         self.child.node.draw(area, state)
+    }
+}
+
+pub struct EmptyBox {
+    height: f32,
+    width: f32,
+}
+
+impl EmptyBox {
+    pub fn new(width: f32, height: f32) -> UiRef {
+        Self { width, height }.to_ref()
+    }
+
+    pub fn height(height: f32) -> UiRef {
+        Self { width: 0.0, height }.to_ref()
+    }
+
+    pub fn width(width: f32) -> UiRef {
+        Self { width, height: 0.0 }.to_ref()
+    }
+}
+
+impl UiNode for EmptyBox {
+    fn preferred_dimensions(&self) -> Vec2 {
+        Vec2::new(self.width, self.height)
+    }
+
+    fn draw(&self, area: Area, state: &UiState) -> Vec2 {
+        self.preferred_dimensions()
     }
 }
