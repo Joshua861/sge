@@ -131,6 +131,10 @@ impl Scroll {
                 .scrollbar_opacity
                 .lerp(state.desired_scrollbar_opacity, 5.0 * delta_time());
 
+            if state.scrollbar_opacity < 0.5 {
+                return;
+            }
+
             let scrollbar_area = Area {
                 top_left: area.top_left + vec2(area.width() - style.width, 0.0),
                 size: vec2(style.width, area.height()),

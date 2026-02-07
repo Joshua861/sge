@@ -1,6 +1,6 @@
-use std::{collections::HashMap, hash::Hash};
+use std::{borrow::Borrow, collections::HashMap, hash::Hash};
 
-use crate::utils::EngineCreate;
+use crate::{api::rand, utils::EngineCreate};
 use bevy_math::{IVec2, Rect, Vec2};
 use engine_4_macros::gen_ref_type;
 use error_union::ErrorUnion;
@@ -18,11 +18,16 @@ use crate::{
 };
 
 pub mod rich_text;
+pub mod wrapped_text;
+
+pub use wrapped_text::*;
 
 pub struct EngineFont {
     font: fontdue::Font,
     atlas: TextureAtlas,
     characters: HashMap<Glyph, CharacterInfo>,
+    /// not the same as font ref
+    id: u32,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -227,6 +232,7 @@ impl EngineFont {
             font: fontdue::Font::from_bytes(bytes, fontdue::FontSettings::default())?,
             characters: HashMap::new(),
             atlas,
+            id: rand::<u32>(),
         })
     }
 
@@ -273,6 +279,27 @@ impl EngineFont {
     }
 
     pub(crate) fn measure_text(
+        &mut self,
+        text: impl AsRef<str>,
+        font_size: f32,
+        do_dpi_scaling: bool,
+    ) -> TextDimensions {
+        let text = text.as_ref().to_string();
+        let cache = &mut get_state().storage.text_measure_cache;
+
+        if let Some(&size) = cache.get(&(self.id, text.clone())) {
+            return TextDimensions {
+                size,
+                final_cursor_pos: size,
+            };
+        }
+
+        let result = self.measure_text_inner(&text, font_size, do_dpi_scaling);
+        cache.insert((self.id, text), result.size);
+        result
+    }
+
+    fn measure_text_inner(
         &mut self,
         text: impl AsRef<str>,
         font_size: f32,

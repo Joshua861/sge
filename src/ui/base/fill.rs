@@ -11,12 +11,7 @@ pub struct Fill {
 
 impl Fill {
     pub fn new(fill_color: Color, child: Child) -> UiRef {
-        Self {
-            fill_color,
-            corner_radius: 0.0,
-            child,
-        }
-        .to_ref()
+        BoxFill::new(fill_color, child)
     }
 
     pub fn rounded(fill_color: Color, corner_radius: f32, child: Child) -> UiRef {

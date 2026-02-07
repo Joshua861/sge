@@ -17,7 +17,7 @@ impl Button {
             hover,
             bg,
             0.0,
-            base::Button::new(id, Padding::xy(40.0, 10.0, Text::body(text))),
+            base::Button::new(id, Padding::xy(40.0, 10.0, Text::no_wrap(text))),
         ))
     }
 }

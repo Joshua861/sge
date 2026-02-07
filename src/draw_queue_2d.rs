@@ -470,7 +470,7 @@ impl DrawQueue2D {
                 dimensions,
                 center,
                 z,
-                corner_radius.clamp(0.0, 0.5 * shortest_side),
+                corner_radius.clamp(0.0, (0.5 * shortest_side).max(0.0)),
                 fill_color,
                 outline_thickness,
                 outline_color,

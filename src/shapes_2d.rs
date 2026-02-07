@@ -50,6 +50,14 @@ impl Circle {
     pub fn encompassing_radius(&self) -> f32 {
         self.radius.x.max(self.radius.y)
     }
+
+    pub fn from_top_left(top_left: Vec2, radius: Vec2, color: Color) -> Self {
+        Self {
+            center: top_left + radius,
+            radius,
+            color,
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug)]

@@ -130,6 +130,7 @@ pub struct Opts {
     pub use_mipmaps: Option<bool>,
     pub default_magnify_filter: Option<MagnifySamplerFilter>,
     pub default_minify_filter: Option<MinifySamplerFilter>,
+    pub wait_for_events: Option<bool>,
     pub title: String,
 }
 
@@ -328,11 +329,15 @@ impl Opts {
         let default_minify_filter = self
             .default_minify_filter
             .unwrap_or(default.config.default_minify_filter);
+        let wait_for_events = self
+            .wait_for_events
+            .unwrap_or(default.config.wait_for_events);
 
         let config = EngineConfig {
             use_mipmaps,
             default_magnify_filter,
             default_minify_filter,
+            wait_for_events,
         };
 
         EngineCreationOptions {
@@ -369,14 +374,16 @@ impl Default for EngineCreationOptions {
 }
 
 pub struct EngineConfig {
-    // applies when loading a texture, not drawing
-    //
-    // setting this to true will make textures look better (less horrible and pixelated) from afer
-    //
-    // setting this to false will sometimes make images look crisper
+    /// applies when loading a texture, not drawing
+    ///
+    /// setting this to true will make textures look better (less horrible and pixelated) from afer
+    ///
+    /// setting this to false will sometimes make images look crisper
     pub use_mipmaps: bool,
     pub default_magnify_filter: MagnifySamplerFilter,
     pub default_minify_filter: MinifySamplerFilter,
+    /// makes the engine wait for new events before re-rendering
+    pub wait_for_events: bool,
 }
 
 impl Default for EngineConfig {
@@ -385,6 +392,7 @@ impl Default for EngineConfig {
             use_mipmaps: true,
             default_magnify_filter: MagnifySamplerFilter::Nearest,
             default_minify_filter: MinifySamplerFilter::LinearMipmapLinear,
+            wait_for_events: false,
         }
     }
 }

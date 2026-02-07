@@ -101,7 +101,6 @@ impl Default for UiRef {
 pub(crate) fn update_ui() {
     let state = get_state();
     state.storage.ui_nodes.clear();
-    state.storage.button_clicked = None;
     base::Empty.to_ref(); // set default (id: 0) node to Empty
 }
 

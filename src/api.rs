@@ -645,3 +645,28 @@ pub fn min_window_dimension() -> f32 {
 pub fn gamepad_input() -> &'static GilrsInputHelper {
     &get_state().input.gamepad
 }
+
+pub fn wait_for_events() {
+    get_state().config.wait_for_events = true;
+}
+
+pub fn dont_wait_for_events() {
+    get_state().config.wait_for_events = false;
+}
+
+pub fn set_wait_for_events(wait_for_events: bool) {
+    get_state().config.wait_for_events = wait_for_events;
+}
+
+pub fn get_wait_for_events() -> bool {
+    get_state().config.wait_for_events
+}
+
+pub fn get_wait_for_events_mut() -> &'static mut bool {
+    &mut get_state().config.wait_for_events
+}
+
+pub fn toggle_wait_for_events() {
+    let state = get_state();
+    state.config.wait_for_events = !state.config.wait_for_events;
+}

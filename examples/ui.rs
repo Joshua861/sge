@@ -3,6 +3,8 @@ use engine_4::ui::prelude::*;
 
 fn main() -> anyhow::Result<()> {
     init("UI")?;
+    // wait_for_events(); // can be useful for increasing performance in ui only apps
+
     let texture = include_texture!("../assets/textures/guy.jpg");
     let mut progress: f32 = rand();
     let mut show_message = false;
@@ -11,175 +13,23 @@ fn main() -> anyhow::Result<()> {
     loop {
         clear_screen(clear_color);
 
-        let ui = SizedBox::wh(
-            400.0,
-            800.0,
-            BoxFill::new(
-                Color::GRAY_700,
-                Scroll::new(
-                    id!(),
-                    Padding::all(
-                        10.0,
-                        Col::with_gap(
-                            10.0,
-                            (0..100)
-                                .map(|n| {
-                                    SizedBox::height(
-                                        40.0,
-                                        RoundedHoverFill::new(
-                                            Color::GRAY_600,
-                                            Color::GRAY_500,
-                                            7.0,
-                                            Center::new(Text::new(n)),
-                                        ),
-                                    )
-                                })
-                                .collect::<Vec<_>>(),
-                        ),
-                    ),
-                ),
-            ),
-        );
-        draw_ui(ui, vec2(20.0, 600.0));
-
-        // ------
-
-        let show_blinking = time_seconds().is_multiple_of(2);
-
         if once_per_n_seconds(2.0 / 3.0) {
             progress = rand();
         }
 
-        let button_id = id!();
-        let ui = Fit::new(w95::Card::new(
-            20.0,
-            Col::with_gap(
-                10.0,
-                [
-                    black_text(format!("{:.0}", avg_fps())),
-                    black_text("Hello world!"),
-                    black_text("This is UI."),
-                    w95::Button::text(button_id, "Click me!"),
-                    Text::new_with_size_color("Styled text", 30, Color::RED_600),
-                    ConstrainedBox::max_size(
-                        vec2(300.0, 200.0),
-                        w95::Card::new(0.0, ImageNode::from_texture(texture)),
-                    ),
-                    w95::ProgressBar::new(vec2(200.0, 20.0), progress, 1.0, id!()),
-                    if show_blinking {
-                        black_text("I blink")
-                    } else {
-                        EMPTY
-                    },
-                ],
-            ),
-        ));
+        let mut ui_parts = vec![];
 
-        draw_ui(ui, Vec2::splat(20.0));
+        ui_parts.push(scroll_window());
+        ui_parts.push(w95_window(texture, progress, &mut clear_color));
+        ui_parts.push(text_window());
+        ui_parts.push(button_window(&mut show_message));
+        ui_parts.push(align_window());
 
-        if ui_button_clicked(button_id) {
-            clear_color = random_color();
-        }
-
-        // ------
-
-        let ui = SizedBox::wh(
-            500.0,
-            500.0,
-            BoxFill::new(
-                Color::NEUTRAL_800,
-                Padding::all(
-                    20.0,
-                    Scroll::new(
-                        id!(),
-                        Col::new([
-                            Text::title("Title"),
-                            Text::body("Lorem ipsum dolor sit amet."),
-                            Text::h1("Heading 1"),
-                            Text::body("Lorem ipsum dolor sit amet."),
-                            Text::h2("Heading 1"),
-                            Text::body("Lorem ipsum dolor sit amet."),
-                            Text::h3("Heading 1"),
-                            Text::body("Lorem ipsum dolor sit amet."),
-                            Text::italic("Lorem ipsum dolor sit amet."),
-                            Text::bold("Lorem ipsum dolor sit amet."),
-                            Text::bold_italic("Lorem ipsum dolor sit amet."),
-                            bold_italic_colored("Lorem ipsum dolor sit amet.", Color::WHITE),
-                            bold_italic_colored("Lorem ipsum dolor sit amet.", Color::NEUTRAL_100),
-                            bold_italic_colored("Lorem ipsum dolor sit amet.", Color::NEUTRAL_200),
-                            bold_italic_colored("Lorem ipsum dolor sit amet.", Color::NEUTRAL_300),
-                            bold_italic_colored("Lorem ipsum dolor sit amet.", Color::NEUTRAL_400),
-                            bold_italic_colored("Lorem ipsum dolor sit amet.", Color::NEUTRAL_500),
-                            bold_italic_colored("Lorem ipsum dolor sit amet.", Color::NEUTRAL_600),
-                            bold_italic_colored("Lorem ipsum dolor sit amet.", Color::NEUTRAL_700),
-                            bold_italic_colored("Lorem ipsum dolor sit amet.", Color::NEUTRAL_800),
-                            bold_italic_colored("Lorem ipsum dolor sit amet.", Color::NEUTRAL_900),
-                            bold_italic_colored("Lorem ipsum dolor sit amet.", Color::BLACK),
-                        ]),
-                    ),
-                ),
-            ),
-        );
-
-        draw_ui(ui, vec2(500.0, 20.0));
-
-        // ------
-
-        let button_id = id!();
-        let ui = library::flat::Card::sized(
-            vec2(300.0, 200.0),
-            Color::NEUTRAL_900,
-            Col::with_gap(
-                30.0,
-                [
-                    Center::new(flat::Button::text(
-                        Color::NEUTRAL_600,
-                        Color::NEUTRAL_500,
-                        button_id,
-                        "Click me!",
-                    )),
-                    if show_message {
-                        Center::new(Text::body("Thanks for clicking."))
-                    } else {
-                        EMPTY
-                    },
-                ],
-            ),
-        );
-
-        draw_ui(ui, vec2(500.0, 540.0));
-
-        if ui_button_clicked(button_id) {
-            show_message = !show_message;
-        }
-
-        // ------
-
-        let size = vec2(300.0, 300.0);
         let ui = SizedBox::new(
-            size,
-            BoxFill::new(
-                Color::BLACK,
-                Stack::new(
-                    size,
-                    [
-                        Align::top_left(square(Color::RED_500)),
-                        Align::top_center(square(Color::ORANGE_500)),
-                        Align::top_right(square(Color::YELLOW_500)),
-                        Align::center_right(square(Color::GREEN_500)),
-                        Align::bottom_right(square(Color::SKY_500)),
-                        Align::bottom_center(square(Color::BLUE_500)),
-                        Align::bottom_left(square(Color::PURPLE_500)),
-                        Align::center_left(square(Color::PINK_500)),
-                        Align::center(square(Color::WHITE)),
-                    ],
-                ),
-            ),
+            window_size(),
+            Padding::all(20.0, Grid::with_gap(2, 3, 20.0, ui_parts)),
         );
-
-        draw_ui(ui, vec2(500.0, 760.0));
-
-        // ------
+        draw_ui(ui, vec2(0.0, 0.0));
 
         if should_quit() {
             break;
@@ -189,6 +39,170 @@ fn main() -> anyhow::Result<()> {
     }
 
     Ok(())
+}
+
+fn scroll_window() -> UiRef {
+    BoxFill::new(
+        Color::GRAY_700,
+        Scroll::new(
+            id!(),
+            Padding::all(
+                10.0,
+                Col::with_gap(
+                    10.0,
+                    (0..100)
+                        .map(|n| {
+                            SizedBox::height(
+                                40.0,
+                                RoundedHoverFill::new(
+                                    Color::GRAY_600,
+                                    Color::GRAY_500,
+                                    7.0,
+                                    Center::new(Text::new(n)),
+                                ),
+                            )
+                        })
+                        .collect::<Vec<_>>(),
+                ),
+            ),
+        ),
+    )
+}
+
+fn w95_window(texture: TextureRef, progress: f32, clear_color: &mut Color) -> UiRef {
+    let color_button = id!();
+    let wait_button = id!();
+
+    if button_clicked_last_frame(color_button) {
+        *clear_color = random_color();
+    }
+
+    if button_clicked_last_frame(wait_button) {
+        toggle_wait_for_events();
+    }
+
+    w95::Card::thick(
+        20.0,
+        Scroll::new(
+            id!(),
+            Col::with_gap(
+                10.0,
+                [
+                    black_text(format!("{:.0}", avg_fps())),
+                    black_text("Hello world!"),
+                    black_text("This is UI."),
+                    w95::Button::text(color_button, "Background"),
+                    w95::Button::text(
+                        wait_button,
+                        format!("Toggle wait for events: {}", get_wait_for_events()),
+                    ),
+                    Text::new_with_size_color("Styled text", 30, Color::RED_600),
+                    ConstrainedBox::max_size(
+                        vec2(300.0, 200.0),
+                        w95::Card::new(0.0, ImageNode::from_texture(texture)),
+                    ),
+                    w95::ProgressBar::new(vec2(200.0, 20.0), progress, 1.0, id!()),
+                    GradientFill::top_to_bottom(
+                        Color::NEUTRAL_100,
+                        w95::PRIMARY,
+                        Center::new(AspectRatio::new(
+                            4.0,
+                            BoxFill::new(
+                                Color::NEUTRAL_200,
+                                CircleFill::new(Color::NEUTRAL_300).sized(150.0, 150.0),
+                            ),
+                        )),
+                    )
+                    .sized(200.0, 200.0),
+                ],
+            ),
+        ),
+    )
+}
+
+fn text_window() -> UiRef {
+    BoxFill::new(
+        Color::NEUTRAL_800,
+        Padding::all(
+            20.0,
+            Scroll::new(
+                id!(),
+                Col::new([
+                    Text::title("Title"),
+                    Text::body(
+                        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+                    ),
+                    Text::h1("Heading 1"),
+                    Text::body("Lorem ipsum dolor sit amet."),
+                    Text::h2("Heading 1"),
+                    Text::body("Lorem ipsum dolor sit amet."),
+                    Text::h3("Heading 1"),
+                    Text::body("Lorem ipsum dolor sit amet."),
+                    Text::italic("Lorem ipsum dolor sit amet."),
+                    Text::bold("Lorem ipsum dolor sit amet."),
+                    Text::bold_italic("Lorem ipsum dolor sit amet."),
+                    bold_italic_colored("Lorem ipsum dolor sit amet.", Color::WHITE),
+                    bold_italic_colored("Lorem ipsum dolor sit amet.", Color::NEUTRAL_100),
+                    bold_italic_colored("Lorem ipsum dolor sit amet.", Color::NEUTRAL_200),
+                    bold_italic_colored("Lorem ipsum dolor sit amet.", Color::NEUTRAL_300),
+                    bold_italic_colored("Lorem ipsum dolor sit amet.", Color::NEUTRAL_400),
+                    bold_italic_colored("Lorem ipsum dolor sit amet.", Color::NEUTRAL_500),
+                    bold_italic_colored("Lorem ipsum dolor sit amet.", Color::NEUTRAL_600),
+                    bold_italic_colored("Lorem ipsum dolor sit amet.", Color::NEUTRAL_700),
+                    bold_italic_colored("Lorem ipsum dolor sit amet.", Color::NEUTRAL_800),
+                    bold_italic_colored("Lorem ipsum dolor sit amet.", Color::NEUTRAL_900),
+                    bold_italic_colored("Lorem ipsum dolor sit amet.", Color::BLACK),
+                ]),
+            ),
+        ),
+    )
+}
+
+fn button_window(show_message: &mut bool) -> UiRef {
+    let button = id!();
+
+    if button_clicked_last_frame(button) {
+        *show_message = !*show_message;
+    }
+
+    library::flat::Card::expand(
+        Color::NEUTRAL_900,
+        Col::with_gap(
+            30.0,
+            [
+                Center::new(flat::Button::text(
+                    Color::NEUTRAL_600,
+                    Color::NEUTRAL_500,
+                    button,
+                    "Click me!",
+                )),
+                if *show_message {
+                    Center::new(Text::body("Thanks for clicking."))
+                } else {
+                    EMPTY
+                },
+            ],
+        ),
+    )
+    .scissored()
+}
+
+fn align_window() -> UiRef {
+    BoxFill::new(
+        Color::BLACK,
+        Stack::new([
+            Align::top_left(square(Color::RED_500)),
+            Align::top_center(square(Color::ORANGE_500)),
+            Align::top_right(square(Color::YELLOW_500)),
+            Align::center_right(square(Color::GREEN_500)),
+            Align::bottom_right(square(Color::SKY_500)),
+            Align::bottom_center(square(Color::BLUE_500)),
+            Align::bottom_left(square(Color::PURPLE_500)),
+            Align::center_left(square(Color::PINK_500)),
+            Align::center(square(Color::WHITE)),
+        ]),
+    )
+    .scissored()
 }
 
 fn square(color: Color) -> UiRef {
@@ -202,5 +216,5 @@ fn black_text(text: impl ToString) -> UiRef {
 }
 
 fn bold_italic_colored(text: impl ToString, color: Color) -> UiRef {
-    Text::new_full(text, SANS_BOLD_ITALIC, 24, color, true)
+    Text::new_full(text, SANS_BOLD_ITALIC, 24, color, true, 1.0, false)
 }

@@ -11,4 +11,8 @@ impl Card {
     pub fn sized(size: Vec2, bg: Color, child: Child) -> UiRef {
         SizedBox::new(size, BoxFill::new(bg, Padding::all(20.0, child)))
     }
+
+    pub fn expand(bg: Color, child: Child) -> UiRef {
+        BoxFill::new(bg, Padding::all(20.0, child))
+    }
 }

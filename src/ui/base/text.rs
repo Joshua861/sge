@@ -5,7 +5,7 @@ use log::warn;
 use super::*;
 use crate::prelude::{
     FontRef, MONO, SANS, SANS_BOLD, SANS_BOLD_ITALIC, SANS_DISPLAY, SANS_ITALIC, TextDrawParams,
-    draw_text_ex, measure_text_ex,
+    draw_text_ex, measure_text_ex, wrapped_text::draw_wrapped_text_in_area,
 };
 
 #[derive(Debug)]
@@ -16,6 +16,8 @@ pub struct Text {
     color: Color,
     /// scale the font size by the DPI scaling of your monitor
     do_dpi_scaling: bool,
+    line_spacing: f32,
+    wrap: bool,
 }
 
 impl Default for Text {
@@ -27,6 +29,8 @@ impl Default for Text {
             color: params.color,
             do_dpi_scaling: params.do_dpi_scaling,
             font: SANS,
+            line_spacing: 1.0,
+            wrap: true,
         }
     }
 }
@@ -59,6 +63,25 @@ impl Text {
     pub fn new(text: impl ToString) -> UiRef {
         Self {
             text: text.to_string(),
+            ..Default::default()
+        }
+        .to_ref()
+    }
+
+    pub fn no_wrap(text: impl ToString) -> UiRef {
+        Self {
+            text: text.to_string(),
+            wrap: false,
+            ..Default::default()
+        }
+        .to_ref()
+    }
+
+    pub fn no_wrap_with_color(text: impl ToString, color: Color) -> UiRef {
+        Self {
+            text: text.to_string(),
+            color,
+            wrap: false,
             ..Default::default()
         }
         .to_ref()
@@ -209,6 +232,8 @@ impl Text {
         font_size: usize,
         color: Color,
         do_dpi_scaling: bool,
+        line_spacing: f32,
+        wrap: bool,
     ) -> UiRef {
         Self {
             text: text.to_string(),
@@ -216,6 +241,8 @@ impl Text {
             font_size,
             color,
             do_dpi_scaling,
+            line_spacing,
+            wrap,
         }
         .to_ref()
     }
@@ -228,8 +255,6 @@ impl UiNode for Text {
     }
 
     fn draw(&self, area: super::Area, _: &UiState) -> Vec2 {
-        let immutable: &Self = &self;
-        let mut params: TextDrawParams = immutable.into();
         let size = area.size();
         let dim = self.preferred_dimensions();
 
@@ -238,8 +263,20 @@ impl UiNode for Text {
             warn!("Text overflows container: '{}'.", self.text);
         }
 
-        params.position = area.top_left;
-
-        draw_text_ex(&self.text, params).size
+        if self.wrap {
+            draw_wrapped_text_in_area(
+                &self.text,
+                area,
+                Some(self.font),
+                self.font_size,
+                self.color,
+                self.do_dpi_scaling,
+                self.line_spacing,
+            )
+        } else {
+            let mut params: TextDrawParams = self.into();
+            params.position = area.top_left;
+            draw_text_ex(&self.text, params).size
+        }
     }
 }

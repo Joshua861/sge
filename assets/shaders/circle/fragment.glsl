@@ -22,7 +22,6 @@ void main() {
     float outer_coverage = 1.0 - smoothstep(1.0 - edge_width, 1.0 + edge_width, outer_dist);
     float outline_coverage = outer_coverage - fill_coverage;
 
-    // Choose color based on which region we're in (not blended)
     vec3 final_color = fill_coverage > outline_coverage ? v_fill_color.rgb : v_outline_color.rgb;
     float final_alpha = v_fill_color.a * fill_coverage + v_outline_color.a * outline_coverage;
 

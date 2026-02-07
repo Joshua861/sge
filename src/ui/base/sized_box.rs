@@ -53,6 +53,12 @@ impl SizedBox {
     }
 }
 
+impl UiRef {
+    pub fn sized(self, width: f32, height: f32) -> UiRef {
+        SizedBox::wh(width, height, self.into())
+    }
+}
+
 fn inf_to_zero(n: f32) -> f32 {
     match n {
         f32::INFINITY => 0.0,

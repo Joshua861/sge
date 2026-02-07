@@ -1,6 +1,4 @@
-use std::cell::{Cell, RefCell};
-
-use log::warn;
+use crate::api::frame_count;
 
 use super::*;
 
@@ -30,13 +28,28 @@ impl UiNode for Button {
 
     fn draw(&self, area: Area, ui: &UiState) -> Vec2 {
         if ui.is_hovered(area) && ui.input().mouse_released(MouseButton::Left) {
-            get_state().storage.button_clicked = Some(self.id);
+            get_state()
+                .storage
+                .buttons_clicked
+                .insert(self.id, frame_count());
         }
 
         self.child.node.draw(area, ui)
     }
 }
 
-pub fn ui_button_clicked(id: usize) -> bool {
-    get_state().storage.button_clicked == Some(id)
+pub fn button_clicked_this_frame(id: usize) -> bool {
+    get_state()
+        .storage
+        .buttons_clicked
+        .get(&id)
+        .is_some_and(|&n| n == frame_count())
+}
+
+pub fn button_clicked_last_frame(id: usize) -> bool {
+    get_state()
+        .storage
+        .buttons_clicked
+        .get(&id)
+        .is_some_and(|&n| n == frame_count() - 1)
 }

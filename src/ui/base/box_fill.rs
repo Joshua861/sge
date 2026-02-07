@@ -23,6 +23,12 @@ impl UiNode for BoxFill {
     }
 }
 
+impl UiRef {
+    pub fn fill(self, color: Color) -> UiRef {
+        BoxFill::new(color, self.into())
+    }
+}
+
 #[derive(Debug)]
 pub struct HoverBoxFill {
     base_color: Color,

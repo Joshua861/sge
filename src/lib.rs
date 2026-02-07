@@ -21,6 +21,9 @@ use fps_ticker::Fps;
 use glium::Program;
 #[cfg(feature = "profile")]
 use glium::glutin::surface::SwapInterval;
+use glium::winit::dpi::PhysicalSize;
+use glium::winit::event::WindowEvent;
+use glium::winit::event_loop::ActiveEventLoop;
 use glium::{
     Frame,
     backend::glutin::Display,
@@ -38,6 +41,7 @@ use logging::get_logger;
 use materials::Material;
 use object_3d::Mesh;
 use object_3d::Object3D;
+use prelude::FontRef;
 use prelude::TextureAtlas;
 use prelude::init_fonts;
 use prelude::init_materials;
@@ -57,6 +61,8 @@ use user_storage::UserStorage;
 #[cfg(feature = "profile")]
 use window::WindowOptions;
 use window::init_window;
+
+const WAIT_FOR_EVENTS_EXTRA_FRAME_DRAWS: usize = 60 * 10; // stops rendering after 10 seconds of no input, when config.wait_for_events is true
 
 pub mod animation;
 pub mod api;
@@ -137,6 +143,7 @@ struct EngineState {
     cursor_position: Vec2,
     user_storage: UserStorage,
     scissors: Vec<glium::Rect>,
+    frames_since_input: usize,
 }
 
 unsafe impl Sync for EngineState {}
@@ -154,7 +161,8 @@ pub(crate) struct EngineStorage {
     images: Vec<Image>,
     ui_nodes: Vec<SomeNode>,
     ui_states: HashMap<StateRef, SomeState>,
-    button_clicked: Option<usize>,
+    buttons_clicked: HashMap<usize, usize>,
+    text_measure_cache: HashMap<(u32, String), Vec2>,
 }
 
 impl EngineStorage {
@@ -171,7 +179,8 @@ impl EngineStorage {
             images: vec![],
             ui_nodes: vec![],
             ui_states: HashMap::new(),
-            button_clicked: None,
+            buttons_clicked: HashMap::new(),
+            text_measure_cache: HashMap::new(),
         }
     }
 }
@@ -288,6 +297,7 @@ pub fn init_custom(mut opts: config::Opts) -> Result<(), InitError> {
                 .build()
                 .unwrap(),
             scissors: vec![],
+            frames_since_input: 0,
         });
     }
 
@@ -305,35 +315,36 @@ pub fn next_frame() {
 
     #[cfg(feature = "debugging")]
     let engine_start_time = Instant::now();
+
     let state = get_state();
+
+    let has_input_event = process_events(state);
+    update_input_frame_counter(state, has_input_event);
+
+    render_frame(state);
+    request_redraw_if_needed(state);
+    update_timing(state);
+
+    #[cfg(feature = "debugging")]
+    record_frame_time(state, engine_start_time);
+
+    #[cfg(feature = "profile")]
+    handle_profiling(state);
+}
+
+fn process_events(state: &mut EngineState) -> bool {
+    let mut has_input_event = false;
 
     #[allow(deprecated)]
     state
         .event_loop
         .pump_events(None, |event, event_loop_window_target| match event {
             Event::WindowEvent { event, .. } => {
-                let gui_response = state.egui.on_event(&state.window, &event);
-                if gui_response.consumed {
-                    return;
-                }
-
-                state.input.process_window_event(&event);
-
-                if state.input.close_requested() {
-                    event_loop_window_target.exit();
-                }
-
-                if let Some(size) = state.input.window_resized() {
-                    state.display.resize(size.into());
-                    state.flat_projection = projection_from_window(&state.window);
-                    let size = state.window.inner_size();
-                    state.camera_2d.update_sizes(size.width, size.height);
-                    state.camera_3d.update_sizes(size.width, size.height);
-                    state.window_size = Vec2::new(size.width as f32, size.height as f32);
-                }
+                has_input_event |= handle_window_event(&event, event_loop_window_target);
             }
             Event::DeviceEvent { event, .. } => {
                 state.input.process_device_event(&event);
+                has_input_event = true;
             }
             Event::NewEvents(_) => {
                 state.input.step();
@@ -341,11 +352,51 @@ pub fn next_frame() {
             _ => (),
         });
 
+    has_input_event
+}
+
+fn handle_window_event(event: &WindowEvent, event_loop_window_target: &ActiveEventLoop) -> bool {
+    let state = get_state();
+    let gui_response = state.egui.on_event(&state.window, event);
+    if gui_response.consumed {
+        return false;
+    }
+
+    let is_input_event = !state.input.process_window_event(event);
+
+    if state.input.close_requested() {
+        event_loop_window_target.exit();
+    }
+
+    if let Some(size) = state.input.window_resized() {
+        handle_window_resize(state, size);
+    }
+
+    is_input_event
+}
+
+fn handle_window_resize(state: &mut EngineState, size: PhysicalSize<u32>) {
+    state.display.resize(size.into());
+    state.flat_projection = projection_from_window(&state.window);
+    let size = state.window.inner_size();
+    state.camera_2d.update_sizes(size.width, size.height);
+    state.camera_3d.update_sizes(size.width, size.height);
+    state.window_size = Vec2::new(size.width as f32, size.height as f32);
+}
+
+fn update_input_frame_counter(state: &mut EngineState, has_input_event: bool) {
+    if has_input_event {
+        state.frames_since_input = 0;
+    } else if state.frames_since_input < WAIT_FOR_EVENTS_EXTRA_FRAME_DRAWS {
+        state.frames_since_input += 1;
+    }
+}
+
+fn render_frame(state: &mut EngineState) {
     #[cfg(feature = "gamepad")]
     state.input.gamepad.update();
 
     let mut frame = state.frame.take().unwrap_or_else(|| state.display.draw());
-
     state.render_pipeline.draw_on(&mut frame);
     state.render_pipeline = RenderPipeline::screen();
 
@@ -353,18 +404,18 @@ pub fn next_frame() {
         state.egui.paint(&state.display, &mut frame);
     }
 
-    #[cfg(feature = "debugging")]
-    {
-        state.debug_info.next_frame();
-        let engine_time = engine_start_time.elapsed();
-        state.debug_info.current_frame_mut().engine_time = engine_time.as_millis_f64();
-    }
-
     frame.finish().unwrap();
-    state.window.request_redraw();
-
     state.frame = Some(state.display.draw());
+}
 
+fn request_redraw_if_needed(state: &EngineState) {
+    if !state.config.wait_for_events || state.frames_since_input < WAIT_FOR_EVENTS_EXTRA_FRAME_DRAWS
+    {
+        state.window.request_redraw();
+    }
+}
+
+fn update_timing(state: &mut EngineState) {
     let delta_time = state.last_frame_end_time.elapsed().as_secs_f32();
     state.delta_time = delta_time;
     state.time += delta_time;
@@ -382,21 +433,27 @@ pub fn next_frame() {
     if let Some(c) = state.input.cursor() {
         state.cursor_position = c.into();
     }
+}
 
-    #[cfg(feature = "profile")]
-    {
-        state.fps.tick();
+#[cfg(feature = "debugging")]
+fn record_frame_time(state: &mut EngineState, engine_start_time: Instant) {
+    state.debug_info.next_frame();
+    let engine_time = engine_start_time.elapsed();
+    state.debug_info.current_frame_mut().engine_time = engine_time.as_millis_f64();
+}
 
-        if state.time >= 1.0
-            && let Ok(report) = state.profiler_guard.report().build()
-        {
-            use std::process::exit;
+#[cfg(feature = "profile")]
+fn handle_profiling(state: &mut EngineState) {
+    use std::process::exit;
 
+    state.fps.tick();
+    if state.time >= 1.0 {
+        if let Ok(report) = state.profiler_guard.report().build() {
             let file = std::fs::File::create("flamegraph.svg").unwrap();
             report.flamegraph(file).unwrap();
             println!("FPS: {}", state.fps.avg());
             exit(0);
-        };
+        }
     }
 }
 

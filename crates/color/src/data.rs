@@ -5,7 +5,7 @@ use super::*;
 impl Color {
     pub const WHITE: Self = Self::from_rgb(1.0, 1.0, 1.0);
     pub const BLACK: Self = Self::from_rgb(0.0, 0.0, 0.0);
-pub const TRANSPARENT: Self = Self::from_rgba(0.0, 0.0, 0.0, 0.0);
+    pub const TRANSPARENT: Self = Self::from_rgba(0.0, 0.0, 0.0, 0.0);
     pub const SLATE_50: Self = Self::from_oklch(0.98400000, 0.00300000, 247.85800000);
     pub const SLATE_100: Self = Self::from_oklch(0.96800000, 0.00700000, 247.89600000);
     pub const SLATE_200: Self = Self::from_oklch(0.92900000, 0.01300000, 255.50800000);
