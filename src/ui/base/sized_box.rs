@@ -57,6 +57,14 @@ impl UiRef {
     pub fn sized(self, width: f32, height: f32) -> UiRef {
         SizedBox::wh(width, height, self.into())
     }
+
+    pub fn height(self, height: f32) -> UiRef {
+        SizedBox::height(height, self.into())
+    }
+
+    pub fn width(self, width: f32) -> UiRef {
+        SizedBox::width(width, self.into())
+    }
 }
 
 fn inf_to_zero(n: f32) -> f32 {

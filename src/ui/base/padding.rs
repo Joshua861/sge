@@ -22,6 +22,72 @@ impl Padding {
         .to_ref()
     }
 
+    pub fn left_right(left: f32, right: f32, child: Child) -> UiRef {
+        Self {
+            top: 0.0,
+            bottom: 0.0,
+            left,
+            right,
+            child,
+        }
+        .to_ref()
+    }
+
+    pub fn top_bottom(top: f32, bottom: f32, child: Child) -> UiRef {
+        Self {
+            top,
+            bottom,
+            left: 0.0,
+            right: 0.0,
+            child,
+        }
+        .to_ref()
+    }
+
+    pub fn top(top: f32, child: Child) -> UiRef {
+        Self {
+            top,
+            bottom: 0.0,
+            left: 0.0,
+            right: 0.0,
+            child,
+        }
+        .to_ref()
+    }
+
+    pub fn bottom(bottom: f32, child: Child) -> UiRef {
+        Self {
+            top: 0.0,
+            bottom,
+            left: 0.0,
+            right: 0.0,
+            child,
+        }
+        .to_ref()
+    }
+
+    pub fn left(left: f32, child: Child) -> UiRef {
+        Self {
+            top: 0.0,
+            bottom: 0.0,
+            left,
+            right: 0.0,
+            child,
+        }
+        .to_ref()
+    }
+
+    pub fn right(right: f32, child: Child) -> UiRef {
+        Self {
+            top: 0.0,
+            bottom: 0.0,
+            left: 0.0,
+            right,
+            child,
+        }
+        .to_ref()
+    }
+
     pub fn all(padding: f32, child: Child) -> UiRef {
         Self {
             top: padding,
@@ -48,6 +114,28 @@ impl Padding {
         Self {
             top: 0.0,
             bottom: 0.0,
+            left: 0.0,
+            right: 0.0,
+            child,
+        }
+        .to_ref()
+    }
+
+    pub fn horizontal(padding: f32, child: Child) -> UiRef {
+        Self {
+            top: 0.0,
+            bottom: 0.0,
+            left: padding,
+            right: padding,
+            child,
+        }
+        .to_ref()
+    }
+
+    pub fn vertical(padding: f32, child: Child) -> UiRef {
+        Self {
+            top: padding,
+            bottom: padding,
             left: 0.0,
             right: 0.0,
             child,

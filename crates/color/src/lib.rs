@@ -45,6 +45,7 @@ impl Color {
         }
         Self::new(convert(r), convert(g), convert(b))
     }
+
     pub const fn from_rgba_u8(r: u8, g: u8, b: u8, a: u8) -> Self {
         const fn convert(n: u8) -> f32 {
             n as f32 / 255.0
@@ -416,4 +417,37 @@ const fn oklch_to_lin_srgba(
 ) -> (f64, f64, f64, f64) {
     let (r, g, b) = oklch_to_lin_srgb(lightness, chroma, hue);
     (r, g, b, alpha)
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct Palette {
+    pub v100: Color,
+    pub v200: Color,
+    pub v300: Color,
+    pub v400: Color,
+    pub v500: Color,
+    pub v600: Color,
+    pub v700: Color,
+    pub v800: Color,
+    pub v900: Color,
+    pub v950: Color,
+    pub v50: Color,
+}
+
+impl Palette {
+    /// light to dark
+    pub fn shades(&self) -> [Color; 11] {
+        [
+            self.v50, self.v100, self.v200, self.v300, self.v400, self.v500, self.v600, self.v700,
+            self.v800, self.v900, self.v950,
+        ]
+    }
+
+    /// dark to light
+    pub fn reversed_shades(&self) -> [Color; 11] {
+        [
+            self.v950, self.v900, self.v800, self.v700, self.v600, self.v500, self.v400, self.v300,
+            self.v200, self.v100, self.v50,
+        ]
+    }
 }

@@ -20,4 +20,8 @@ impl ProgressBar {
             ),
         )
     }
+
+    pub fn primary(size: Vec2, value: f32, max: f32, id: usize) -> UiRef {
+        Self::new(size, super::PRIMARY_TEXT_COLOR, value, max, id)
+    }
 }

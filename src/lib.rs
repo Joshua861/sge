@@ -1,4 +1,5 @@
 #![allow(static_mut_refs)]
+#![allow(unused)]
 #![feature(duration_millis_float)]
 use std::collections::HashMap;
 use std::time::Instant;

@@ -37,6 +37,11 @@ impl BorderStyle {
 
         draw_custom_shape(vec![a, c, d, b], self.color);
     }
+
+    pub const NONE: Self = Self {
+        thickness: 0.0,
+        color: Color::TRANSPARENT,
+    };
 }
 
 #[derive(Debug)]
@@ -62,6 +67,72 @@ impl Border {
             bottom,
             left,
             right,
+            child,
+        }
+        .to_ref()
+    }
+
+    pub fn top_bottom(top: BorderStyle, bottom: BorderStyle, child: Child) -> UiRef {
+        Self {
+            top,
+            bottom,
+            left: BorderStyle::NONE,
+            right: BorderStyle::NONE,
+            child,
+        }
+        .to_ref()
+    }
+
+    pub fn left_right(left: BorderStyle, right: BorderStyle, child: Child) -> UiRef {
+        Self {
+            top: BorderStyle::NONE,
+            bottom: BorderStyle::NONE,
+            left,
+            right,
+            child,
+        }
+        .to_ref()
+    }
+
+    pub fn top(style: BorderStyle, child: Child) -> UiRef {
+        Self {
+            top: style,
+            bottom: BorderStyle::NONE,
+            left: BorderStyle::NONE,
+            right: BorderStyle::NONE,
+            child,
+        }
+        .to_ref()
+    }
+
+    pub fn bottom(style: BorderStyle, child: Child) -> UiRef {
+        Self {
+            top: BorderStyle::NONE,
+            bottom: style,
+            left: BorderStyle::NONE,
+            right: BorderStyle::NONE,
+            child,
+        }
+        .to_ref()
+    }
+
+    pub fn left(style: BorderStyle, child: Child) -> UiRef {
+        Self {
+            top: BorderStyle::NONE,
+            bottom: BorderStyle::NONE,
+            left: style,
+            right: BorderStyle::NONE,
+            child,
+        }
+        .to_ref()
+    }
+
+    pub fn right(style: BorderStyle, child: Child) -> UiRef {
+        Self {
+            top: BorderStyle::NONE,
+            bottom: BorderStyle::NONE,
+            left: BorderStyle::NONE,
+            right: style,
             child,
         }
         .to_ref()

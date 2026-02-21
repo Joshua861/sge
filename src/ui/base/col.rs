@@ -53,6 +53,26 @@ impl UiNode for Col {
         Vec2::new(x, y)
     }
 
+    fn size(&self, area: Area) -> Vec2 {
+        let mut y_offset = 0.0;
+        let mut max_width: f32 = 0.0;
+
+        for child in self.children.iter() {
+            let new_area = {
+                let mut a = area;
+                a.top_left.y += y_offset;
+                a
+            };
+
+            let dimensions = child.node.size(new_area);
+
+            y_offset += dimensions.y + self.gap;
+            max_width = max_width.max(dimensions.x);
+        }
+
+        Vec2::new(max_width, y_offset - self.gap)
+    }
+
     fn draw(&self, area: Area, state: &UiState) -> Vec2 {
         let mut y_offset = 0.0;
         let mut max_width: f32 = 0.0;

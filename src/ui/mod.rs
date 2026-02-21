@@ -72,6 +72,10 @@ impl Debug for UiRef {
 pub trait UiNode: Debug {
     fn preferred_dimensions(&self) -> Vec2;
     fn draw(&self, area: Area, ui: &UiState) -> Vec2;
+    #[allow(unused_variables)]
+    fn size(&self, area: Area) -> Vec2 {
+        self.preferred_dimensions()
+    }
 }
 
 pub trait ToGenericUiNode: UiNode + Sized {
@@ -161,6 +165,22 @@ impl Area {
             width: self.size.x as u32,
             height: self.size.y as u32,
         }
+    }
+
+    pub fn top(&self) -> f32 {
+        self.top_left.y
+    }
+
+    pub fn bottom(&self) -> f32 {
+        self.top_left.y + self.size.y
+    }
+
+    pub fn left(&self) -> f32 {
+        self.top_left.x
+    }
+
+    pub fn right(&self) -> f32 {
+        self.top_left.x + self.size.x
     }
 
     pub fn top_left(&self) -> Vec2 {

@@ -25,9 +25,9 @@ pub struct DrawQueue2D {
 
     sprite_draws: Vec<SpriteBatch>,
 
-    current_z: f32,
-    start_z: f32,
-    z_increment: f32,
+    pub current_z: f32,
+    pub start_z: f32,
+    pub z_increment: f32,
 }
 
 struct RoundedBatch {
@@ -832,4 +832,10 @@ impl<T: Shape2D> Drawable for T {
 
 pub fn draw<T: Drawable>(o: T) {
     o.draw();
+}
+
+/// for draw queue not world draw queue
+pub fn set_z_increment(z_increment: f32) {
+    let state = get_state();
+    state.draw_queue_2d().z_increment = z_increment;
 }

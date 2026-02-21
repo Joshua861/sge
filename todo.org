@@ -1,5 +1,8 @@
 #+title: Todo
 
+- [ ] High priority bugs:
+  - [ ] tailwind colors are wrong. oklch conversion is probably wrong
+  - [ ] transparency
 - [X] OPTIMIZATION: do all the draws at the same time. requires adding back vertex
  colors and a bit of refactoring.
   - [X] draw queue with consecutive poly and circle draw calls grouped together so
@@ -13,7 +16,7 @@
 - [X] FIX: if you render too much text it just gives up and stops rendering any
   more text, but just for that one draw queue
   - no more textures are drawn, not just ones from the same texture atlas. nothing.
-- [ ] ui multiline text
+- [X] ui multiline text
 - [ ] text bg function that doesnt measure before but uses the dimensions returned
   from the drawing function and slots it in with a lower Z
 - [X] ui text wrapping
@@ -36,6 +39,7 @@
   - [X] w95 library
 - [X] gradient fill ui node
 - [ ] loading spinner
+  - [ ] needs arcs
 - [ ] input
 - [ ] number input
 - [ ] slider
@@ -93,8 +97,6 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
 - [ ] fix culling
 - [ ] cull glyph textures out of view
 - [ ] test transform 2 and 3D
-- [ ] Unity particle system
-- [ ] screen shake
 - [ ] Compute shaders.
 - [X] frame time in debug
 - [ ] color schemes? like built in struct called colour scheme with gruvbox and

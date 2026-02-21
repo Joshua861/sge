@@ -3,7 +3,7 @@ pub use crate::camera::controllers::orbit::OrbitCameraController;
 pub use crate::camera::controllers::pan::PanningCameraController;
 pub use crate::collisions;
 pub use crate::collisions::IntersectsWith;
-pub use crate::color::Color;
+pub use crate::color::{Color, Palette};
 pub use engine_4_macros::include_texture;
 // pub use crate::color::schemes::ColorScheme;
 pub use crate::animation::*;

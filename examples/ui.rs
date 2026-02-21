@@ -24,6 +24,7 @@ fn main() -> anyhow::Result<()> {
         ui_parts.push(text_window());
         ui_parts.push(button_window(&mut show_message));
         ui_parts.push(align_window());
+        ui_parts.push(flat_window());
 
         let ui = SizedBox::new(
             window_size(),
@@ -130,7 +131,7 @@ fn text_window() -> UiRef {
                 Col::new([
                     Text::title("Title"),
                     Text::body(
-                        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+                        "Lorem ipsum dolor sit amet, consectetur\n\n adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
                     ),
                     Text::h1("Heading 1"),
                     Text::body("Lorem ipsum dolor sit amet."),
@@ -141,17 +142,11 @@ fn text_window() -> UiRef {
                     Text::italic("Lorem ipsum dolor sit amet."),
                     Text::bold("Lorem ipsum dolor sit amet."),
                     Text::bold_italic("Lorem ipsum dolor sit amet."),
-                    bold_italic_colored("Lorem ipsum dolor sit amet.", Color::WHITE),
-                    bold_italic_colored("Lorem ipsum dolor sit amet.", Color::NEUTRAL_100),
-                    bold_italic_colored("Lorem ipsum dolor sit amet.", Color::NEUTRAL_200),
-                    bold_italic_colored("Lorem ipsum dolor sit amet.", Color::NEUTRAL_300),
-                    bold_italic_colored("Lorem ipsum dolor sit amet.", Color::NEUTRAL_400),
-                    bold_italic_colored("Lorem ipsum dolor sit amet.", Color::NEUTRAL_500),
-                    bold_italic_colored("Lorem ipsum dolor sit amet.", Color::NEUTRAL_600),
-                    bold_italic_colored("Lorem ipsum dolor sit amet.", Color::NEUTRAL_700),
-                    bold_italic_colored("Lorem ipsum dolor sit amet.", Color::NEUTRAL_800),
-                    bold_italic_colored("Lorem ipsum dolor sit amet.", Color::NEUTRAL_900),
-                    bold_italic_colored("Lorem ipsum dolor sit amet.", Color::BLACK),
+                    Col::new(
+                        Palette::NEUTRAL
+                            .shades()
+                            .map(|c| bold_italic_colored("Lorem ipsum dolor sit amet.", c)),
+                    ),
                 ]),
             ),
         ),
@@ -165,25 +160,17 @@ fn button_window(show_message: &mut bool) -> UiRef {
         *show_message = !*show_message;
     }
 
-    library::flat::Card::expand(
-        Color::NEUTRAL_900,
-        Col::with_gap(
-            30.0,
-            [
-                Center::new(flat::Button::text(
-                    Color::NEUTRAL_600,
-                    Color::NEUTRAL_500,
-                    button,
-                    "Click me!",
-                )),
-                if *show_message {
-                    Center::new(Text::body("Thanks for clicking."))
-                } else {
-                    EMPTY
-                },
-            ],
-        ),
-    )
+    library::flat::Card::bg0_expand(Col::with_gap(
+        30.0,
+        [
+            Center::new(flat::Button::primary_text(button, "Click me!")),
+            if *show_message {
+                Center::new(Text::body("Thanks for clicking."))
+            } else {
+                EMPTY
+            },
+        ],
+    ))
     .scissored()
 }
 
@@ -203,6 +190,24 @@ fn align_window() -> UiRef {
         ]),
     )
     .scissored()
+}
+
+fn flat_window() -> UiRef {
+    use flat::*;
+
+    let bars: Vec<_> = Palette::PALETTES
+        .iter()
+        .enumerate()
+        .map(|(i, p)| flat::LoadingBar::new_with_speed(p.v200, i as f32 * 10.0 + 10.0).height(30.0))
+        .collect();
+
+    Card::bg0_expand(FlexCol::with_gap(
+        10.0,
+        [
+            FlexBox::Flex(Col::with_gap(10.0, bars).scroll(id!())),
+            FlexBox::Fixed(Text::new("Hello world.")),
+        ],
+    ))
 }
 
 fn square(color: Color) -> UiRef {

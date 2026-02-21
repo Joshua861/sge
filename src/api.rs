@@ -315,6 +315,10 @@ where
     get_state().rng.random()
 }
 
+pub fn rand_usize() -> usize {
+    get_state().rng.random::<u64>() as usize
+}
+
 /// Return a bool with a probability `p` of being true.
 pub fn random_bool(p: f64) -> bool {
     get_state().rng.random_bool(p)

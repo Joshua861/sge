@@ -180,7 +180,7 @@ impl UiNode for Scroll {
             ui.delta_time * self.interpolation_speed,
         );
 
-        let child_dimensions = self.child.node.preferred_dimensions();
+        let child_dimensions = self.child.node.size(area);
         let max_offset = (child_dimensions.y - area.height()).max(0.0);
 
         if input.is_cursor_within_area(area) {
@@ -206,5 +206,15 @@ impl UiNode for Scroll {
 
     fn preferred_dimensions(&self) -> Vec2 {
         self.child.node.preferred_dimensions()
+    }
+}
+
+impl UiRef {
+    pub fn scroll(self, id: usize) -> UiRef {
+        Scroll::new(id, self.into())
+    }
+
+    pub fn scroll_no_scrollbar(self, id: usize) -> UiRef {
+        Scroll::new_no_scrollbar(id, self.into())
     }
 }

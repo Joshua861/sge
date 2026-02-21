@@ -5,7 +5,7 @@ use log::warn;
 use super::*;
 use crate::prelude::{
     FontRef, MONO, SANS, SANS_BOLD, SANS_BOLD_ITALIC, SANS_DISPLAY, SANS_ITALIC, TextDrawParams,
-    draw_text_ex, measure_text_ex, wrapped_text::draw_wrapped_text_in_area,
+    draw_text_ex, measure_text_ex, measure_wrapped_text, wrapped_text::draw_wrapped_text_in_area,
 };
 
 #[derive(Debug)]
@@ -95,6 +95,16 @@ impl Text {
         Self {
             text: text.to_string(),
             font: MONO,
+            ..Default::default()
+        }
+        .to_ref()
+    }
+
+    pub fn mono_nowrap(text: impl ToString) -> UiRef {
+        Self {
+            text: text.to_string(),
+            font: MONO,
+            wrap: false,
             ..Default::default()
         }
         .to_ref()
@@ -252,6 +262,17 @@ impl UiNode for Text {
     fn preferred_dimensions(&self) -> bevy_math::Vec2 {
         let params: TextDrawParams = self.into();
         measure_text_ex(&self.text, params).size
+    }
+
+    fn size(&self, area: Area) -> Vec2 {
+        measure_wrapped_text(
+            &self.text,
+            area.width(),
+            Some(self.font),
+            self.font_size,
+            self.do_dpi_scaling,
+            self.line_spacing,
+        )
     }
 
     fn draw(&self, area: super::Area, _: &UiState) -> Vec2 {
