@@ -21,6 +21,8 @@
   from the drawing function and slots it in with a lower Z
 - [X] ui text wrapping
 - [ ] ui scroll culling (?)
+- [ ] convert colors/data to a build.rs script using quote/prettyplease so that i
+  can use real palette
 - [ ] easier physics
 - [ ] proper sound
 - [ ] something is broken evident in shapes_3d example

@@ -1,4 +1,4 @@
-use engine_4::prelude::*;
+use sge::prelude::*;
 
 actions! {
     PAUSE, DEBUG, SHOW_TEXTURE
@@ -15,6 +15,7 @@ fn main() -> anyhow::Result<()> {
 
     let mut show_texture = false;
     let mut text = String::new();
+    let mut show_debug_info = false;
 
     loop {
         clear_screen(Color::GRAY_900);
@@ -25,7 +26,7 @@ fn main() -> anyhow::Result<()> {
         }
 
         if action_pressed(DEBUG) && held_control() {
-            toggle_debug_info();
+            show_debug_info = !show_debug_info;
         }
 
         if action_pressed(SHOW_TEXTURE) && held_control() {
@@ -100,7 +101,11 @@ fn main() -> anyhow::Result<()> {
             break;
         }
 
-        run_egui(|_| {});
+        run_egui(|ui| {
+            if show_debug_info {
+                draw_debug_info(ui);
+            }
+        });
 
         next_frame();
     }

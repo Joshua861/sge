@@ -1,19 +1,25 @@
 cargo-features = ["codegen-backend"]
 
 [package]
-name = "engine_4"
+name = "sge"
 version = "0.1.0"
 edition = "2024"
+description = "Simple game engine"
 
 [workspace.dependencies]
+egui_plot = "0.31"
+anyhow = "1.0.100"
 bevy_math = "0.17.2"
+bon = "3.8.1"
 bumpalo = { version = "3.19.0", features = ["collections"] }
 color-eyre = "0.6.5"
 egui_glium = "0.31.1"
 env_logger = "0.11.8"
+error_union = { path = "./crates/error_union" }
 fontdue = "0.9.3"
 fps_ticker = "1.0.0"
 glium = "0.36.0"
+glutin-winit = "0.5.0"
 glyph_brush = "0.7.12"
 image = "0.25.8"
 include_folder = "0.3.0"
@@ -23,68 +29,84 @@ nalgebra = { version = "0.34.1", features = ["convert-glam030"] }
 obj-rs = "0.7.4"
 palette = "0.7.6"
 paste = "1.0.15"
+phf = { version = "0.11", features = ["macros"] }
 rand = "0.9.2"
 rapier2d = { version = "0.30.1", features = ["simd-stable"] }
-tunes = { version = "1.0.2", features = ["gpu"] }
-engine_4_macros = { path = "./crates/engine_4_macros" }
 rayon = "1.11.0"
-glutin-winit = "0.5.0"
-trig-const = "0.3.0"
-phf = { version = "0.11", features = ["macros"] }
-thiserror = "2.0.17"
-termcolor = "1.4.1"
-bon = "3.8.1"
-anyhow = "1.0.100"
-error_union = { path = "./crates/error_union" }
-engine_color = { path = "./crates/color" }
+sge_color = { path = "./crates/sge_color" }
+sge_macros = { path = "./crates/sge_macros" }
+sge_math = { path = "./crates/sge_math" }
+sge_shapes = { path = "./crates/sge_shapes" }
+sge_input = { path = "./crates/sge_input" }
 si = { path = "./crates/si" }
+termcolor = "1.4.1"
+thiserror = "2.0.17"
+trig-const = "0.3.0"
+tunes = { version = "1.0.2", features = ["gpu"] }
 
 [dependencies]
-si = { workspace = true }
-gilrs_input_helper = { path = "./crates/gilrs_input_helper", optional = true }
-pprof = { version = "0.15.0", features = ["flamegraph"], optional = true }
-egui_plot = {version = "0.31", optional = true}
-winit_input_helper = { path = "./crates/winit_input_helper" }
-bevy_math = { workspace = true }
+anyhow.workspace = true
+bevy_math.workspace = true
+bon = { workspace = true }
 bumpalo = { workspace = true }
 color-eyre = { workspace = true }
+const-random = "0.1.18"
 egui_glium = { workspace = true }
 env_logger = { workspace = true }
+error_union.workspace = true
 fontdue = { workspace = true }
 fps_ticker = { workspace = true }
+gilrs_input_helper = { path = "./crates/gilrs_input_helper", optional = true }
 glium = { workspace = true }
+glutin-winit = { workspace = true }
 glyph_brush = { workspace = true }
 image = { workspace = true }
 include_folder = { workspace = true }
-log = { workspace = true }
+log.workspace = true
 lyon = { workspace = true }
 nalgebra = { workspace = true }
 obj-rs = { workspace = true }
 palette = { workspace = true }
 paste = { workspace = true }
+phf = { workspace = true }
+pprof = { version = "0.15.0", features = ["flamegraph"], optional = true }
 rand = { workspace = true }
 rapier2d = { workspace = true }
-tunes = { workspace = true }
-engine_4_macros = { workspace = true }
 rayon = { workspace = true }
-glutin-winit = { workspace = true }
-trig-const = { workspace = true }
-phf = { workspace = true }
-thiserror = { workspace = true }
+sge_color = { workspace = true }
+sge_macros = { workspace = true }
+sge_input = { workspace = true }
+si = { workspace = true }
 termcolor = { workspace = true }
-bon = { workspace = true }
-anyhow = { workspace = true }
-error_union = { workspace = true }
-engine_color = { workspace = true }
-const-random = "0.1.18"
-
-[profile.dev]
-opt-level = 1
-codegen-backend = "cranelift"
-
-[profile.dev.package."*"]
-opt-level = 3
-codegen-backend = "llvm"
+thiserror = { workspace = true }
+trig-const = { workspace = true }
+tunes = { workspace = true }
+sge_math = { workspace = true }
+winit_input_helper = { path = "./crates/winit_input_helper" }
+sge_shapes.workspace = true
+sge_window = { version = "0.1.0", path = "crates/sge_window" }
+sge_config = { version = "0.1.0", path = "crates/sge_config" }
+sge_logging = { version = "0.1.0", path = "crates/sge_logging" }
+sge_camera = { version = "0.1.0", path = "crates/sge_camera" }
+sge_egui = { version = "0.1.0", path = "crates/sge_egui" }
+sge_debugging = { version = "0.1.0", path = "crates/sge_debugging" }
+sge_programs = { version = "0.1.0", path = "crates/sge_programs" }
+sge_textures = { version = "0.1.0", path = "crates/sge_textures" }
+sge_rendering = { version = "0.1.0", path = "crates/sge_rendering" }
+sge_rng = { version = "0.1.0", path = "crates/sge_rng" }
+sge_time = { version = "0.1.0", path = "crates/sge_time" }
+sge_audio = { version = "0.1.0", path = "crates/sge_audio" }
+global = { version = "0.1.0", path = "crates/global" }
+sge_ui = { version = "0.1.0", path = "crates/sge_ui" }
+sge_animation = { version = "0.1.0", path = "crates/sge_animation" }
+sge_debug_visualisations = { version = "0.1.0", path = "crates/sge_debug_visualisations" }
+sge_types = { version = "0.1.0", path = "crates/sge_types" }
+sge_api = { version = "0.1.0", path = "crates/sge_api" }
+sge_image = { version = "0.1.0", path = "crates/sge_image" }
+sge_physics = { version = "0.1.0", path = "crates/sge_physics" }
+sge_text = { version = "0.1.0", path = "crates/sge_text" }
+sge_texture_atlas = { version = "0.1.0", path = "crates/sge_texture_atlas" }
+sge_utils = { version = "0.1.0", path = "crates/sge_utils" }
 
 [profile.release]
 # Compile the entire crate as one unit.
@@ -109,22 +131,46 @@ rustflags = [
 codegen-backend = true
 
 [features]
-default = ["debugging", "gamepad"]
-debugging = ["dep:egui_plot"]
-gamepad = ["dep:gilrs_input_helper"]
-precise_cursor_movement = ["winit_input_helper/precise_cursor_movement"]
+# default = ["debugging", "gamepad"]
+# debugging = ["dep:egui_plot"]
 profile = ["dep:pprof"]
+gamepad = ["sge_input/gamepad"]
+precise_cursor_movement = ["sge_input/precise_cursor_movement"]
 
 [workspace]
 members = [
     ".",
     "crates/error_union",
     "examples/perf_test",
-    "crates/color",
-    "crates/engine_4_macros",
+    "crates/sge_color",
+    "crates/sge_macros",
     "crates/gilrs_input_helper",
     "crates/include_folder",
     "crates/si",
-    "crates/winit_input_helper"
- ]
+    "crates/winit_input_helper",
+    "crates/sge_math",
+    "crates/sge_types",
+    "crates/sge_shapes",
+    "crates/sge_logging",
+    "crates/sge_shapes",
+    "crates/sge_camera",
+    "crates/global",
+    "crates/sge_input",
+    "crates/sge_window",
+    "crates/sge_textures",
+    "crates/sge_rendering",
+    "crates/sge_programs",
+    "crates/sge_utils",
+    "crates/sge_image",
+    "crates/sge_config",
+    "crates/sge_api",
+    "crates/sge_text",
+    "crates/sge_debugging",
+    "crates/sge_debug_visualisations",
+    "crates/sge_rng",
+    "crates/sge_time",
+    "crates/sge_texture_atlas",
+    "crates/sge_animation",
+    "crates/sge_audio"
+, "crates/sge_ui", "crates/sge_egui", "crates/sge_physics"]
 resolver = "3"

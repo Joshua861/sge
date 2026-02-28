@@ -1,0 +1,15 @@
+[package]
+name = "sge_textures"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+bevy_math.workspace = true
+error_union.workspace = true
+glium.workspace = true
+image.workspace = true
+log.workspace = true
+sge_config = { version = "0.1.0", path = "../sge_config" }
+sge_image = { version = "0.1.0", path = "../sge_image" }
+sge_macros.workspace = true
+sge_window = { version = "0.1.0", path = "../sge_window" }

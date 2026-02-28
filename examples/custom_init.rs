@@ -1,4 +1,4 @@
-use engine_4::prelude::*;
+use sge::prelude::*;
 
 struct PhysicsCircle {
     circle: Circle,
@@ -44,6 +44,7 @@ fn main() -> anyhow::Result<()> {
         }
 
         obj.circle.center += obj.velocity * physics_delta_time();
+        dbg!(obj.circle.center);
 
         draw(obj.circle);
         draw_fps();

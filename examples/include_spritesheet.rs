@@ -1,5 +1,5 @@
-use engine_4::prelude::*;
-use engine_4_macros::include_spritesheet;
+use sge::prelude::*;
+use sge_macros::include_spritesheet;
 
 fn main() -> anyhow::Result<()> {
     init("Title")?;

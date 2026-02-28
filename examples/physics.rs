@@ -1,5 +1,5 @@
 // ./examples/physics.rs
-use engine_4::prelude::*;
+use sge::prelude::*;
 
 const BOUNDS_SIZE: Vec2 = Vec2::new(1000.0, 1000.0);
 const BOUNDS_THICKNESS: f32 = 50.0;
@@ -123,11 +123,7 @@ fn main() -> anyhow::Result<()> {
 
     loop {
         clear_screen(Color::NEUTRAL_700);
-        let cursor_pos = cursor_pos();
-
-        if key_pressed(KeyCode::KeyD) {
-            show_debug_info();
-        }
+        let cursor_pos = last_cursor_pos();
 
         if mouse_pressed(MouseButton::Left) {
             let velocity = vector![rand::<f32>() * 100.0 - 50.0, rand::<f32>() * 100.0 - 50.0];

@@ -1,0 +1,11 @@
+[package]
+name = "sge_window"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+bevy_math.workspace = true
+error_union.workspace = true
+glium.workspace = true
+global = { version = "0.1.0", path = "../global" }
+glutin-winit.workspace = true

@@ -1,5 +1,5 @@
 use bevy_math::UVec2;
-use engine_4::prelude::*;
+use sge::prelude::*;
 
 fn main() -> anyhow::Result<()> {
     init("Render textures")?;

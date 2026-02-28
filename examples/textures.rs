@@ -1,4 +1,4 @@
-use engine_4::prelude::*;
+use sge::prelude::*;
 
 fn main() -> anyhow::Result<()> {
     init("Demo")?;
@@ -14,6 +14,8 @@ fn main() -> anyhow::Result<()> {
         ImageFormat::Jpeg,
     )?;
 
+    let mut show_debug_info = false;
+
     loop {
         controller.update();
 
@@ -21,7 +23,7 @@ fn main() -> anyhow::Result<()> {
         vignette_screen(Color::BLACK, 0.2);
 
         if key_pressed(KeyCode::KeyD) {
-            toggle_debug_info();
+            show_debug_info = !show_debug_info;
         }
 
         let dimensions = Vec2::new(100.0, 100.0);
@@ -40,7 +42,11 @@ fn main() -> anyhow::Result<()> {
             }
         }
 
-        run_egui(|_| {});
+        run_egui(|ui| {
+            if show_debug_info {
+                draw_debug_info(ui);
+            }
+        });
 
         if should_quit() {
             break;

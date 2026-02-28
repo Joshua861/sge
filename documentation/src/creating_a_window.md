@@ -3,7 +3,7 @@
 The most basic program using the engine looks like this.
 
 ```rs
-use engine_4::prelude::*;
+use sge::prelude::*;
 
 fn main() -> anyhow::Result<()> {
     init("Title for the window")?;
@@ -42,4 +42,4 @@ Next frame renders all your stuff to the screen and then waits until the next
 frame should begin so that you may process and render the next frame.
 
 The reference documentation for the engine can be found by running `cargo doc`
-in the root folder of the engine source code, or on [docs.rs](https://docs.rs/engine_4/latest/engine_4/).
+in the root folder of the engine source code, or on [docs.rs](https://docs.rs/sge/latest/sge/).

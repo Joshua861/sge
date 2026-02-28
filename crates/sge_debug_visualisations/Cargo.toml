@@ -1,0 +1,20 @@
+[package]
+name = "sge_debug_visualisations"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+bevy_math.workspace = true
+egui_glium.workspace = true
+egui_plot.workspace = true
+error_union.workspace = true
+glium.workspace = true
+sge_color.workspace = true
+sge_debugging = { version = "0.1.0", path = "../sge_debugging" }
+sge_math.workspace = true
+sge_programs = { version = "0.1.0", path = "../sge_programs" }
+sge_rendering = { version = "0.1.0", path = "../sge_rendering" }
+sge_text = { version = "0.1.0", path = "../sge_text" }
+sge_textures = { version = "0.1.0", path = "../sge_textures" }
+sge_types = { version = "0.1.0", path = "../sge_types" }
+sge_window = { version = "0.1.0", path = "../sge_window" }

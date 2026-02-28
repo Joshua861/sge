@@ -1,4 +1,4 @@
-use engine_4::prelude::*;
+use sge::prelude::*;
 
 fn main() -> anyhow::Result<()> {
     init("Ellipse & Circle Outline Demo")?;

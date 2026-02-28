@@ -1,4 +1,4 @@
-use engine_4::prelude::*;
+use sge::prelude::*;
 
 const GRID_SIZE: usize = 50;
 
@@ -20,8 +20,6 @@ fn main() -> anyhow::Result<()> {
     let material = create_gouraud_material(Color::SLATE_300, Color::SLATE_500, light_pos);
     let data = include_bytes!("../assets/models/suzanne.obj");
     let suzanne = Object3D::from_obj_bytes_with_material(data, material)?;
-
-    show_debug_info();
 
     let mut transforms = Vec::with_capacity(GRID_SIZE * GRID_SIZE);
     for x in 0..GRID_SIZE {
@@ -95,7 +93,9 @@ fn main() -> anyhow::Result<()> {
         }
 
         if light_on_camera {
-            suzanne.material().set_vec3("light_pos", get_camera3d().eye);
+            suzanne
+                .material()
+                .set_vec3("light_pos", get_camera_3d().eye);
         }
 
         clear_screen(clear_color);
@@ -126,6 +126,8 @@ fn main() -> anyhow::Result<()> {
         }
 
         run_egui(|ui| {
+            draw_debug_info(ui);
+
             egui::Window::new("Keybinds").show(ui, |ui| {
                 ui.label("M - show many suzannes");
                 ui.label("Y - change color to yellow");

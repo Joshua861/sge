@@ -1,4 +1,4 @@
-use engine_4::prelude::*;
+use sge::prelude::*;
 use tunes::{consts::*, prelude::*};
 
 // https://docs.rs/tunes/latest/tunes/
@@ -26,7 +26,7 @@ fn main() -> anyhow::Result<()> {
 
     loop {
         if key_pressed(KeyCode::Space) {
-            audio().play_sample("assets/sounds/vine-boom.mp3");
+            play_sound("assets/sounds/vine-boom.mp3");
             circle_size += 300.0;
         }
 

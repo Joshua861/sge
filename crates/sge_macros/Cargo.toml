@@ -1,0 +1,16 @@
+[package]
+name = "sge_macros"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+anyhow = "1.0.100"
+glob = "0.3.3"
+heck = "0.5.0"
+image = "0.25.9"
+proc-macro2 = "1.0.103"
+quote = "1.0.42"
+syn = "2.0.111"

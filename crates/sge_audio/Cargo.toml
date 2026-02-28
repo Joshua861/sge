@@ -1,0 +1,9 @@
+[package]
+name = "sge_audio"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+global = { version = "0.1.0", path = "../global" }
+log.workspace = true
+tunes.workspace = true

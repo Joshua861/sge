@@ -1,0 +1,9 @@
+[package]
+name = "sge_physics"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+bevy_math.workspace = true
+nalgebra.workspace = true
+rapier2d.workspace = true

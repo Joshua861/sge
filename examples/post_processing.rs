@@ -1,4 +1,4 @@
-use engine_4::prelude::*;
+use sge::prelude::*;
 
 fn main() -> anyhow::Result<()> {
     init("Post processing")?;
@@ -9,7 +9,6 @@ fn main() -> anyhow::Result<()> {
         include_bytes!("../assets/models/suzanne.obj"),
         material,
     )?;
-    show_debug_info();
 
     loop {
         clear_screen(Color::WHITE);
@@ -30,7 +29,9 @@ fn main() -> anyhow::Result<()> {
             Color::SKY_500,
         );
 
-        run_egui(|_| {});
+        run_egui(|ui| {
+            draw_debug_info(ui);
+        });
 
         if should_quit() {
             break;

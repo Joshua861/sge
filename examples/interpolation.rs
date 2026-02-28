@@ -1,4 +1,4 @@
-use engine_4::prelude::*;
+use sge::prelude::*;
 
 fn random_rect() -> Rect {
     let sf = window_height().min(window_width());

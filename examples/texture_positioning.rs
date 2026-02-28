@@ -1,6 +1,6 @@
 // i dont even remember what this example was for
 
-use engine_4::prelude::*;
+use sge::prelude::*;
 
 fn main() -> anyhow::Result<()> {
     init("Texture positioning")?;

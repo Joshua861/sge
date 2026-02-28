@@ -1,4 +1,4 @@
-use engine_4::prelude::*;
+use sge::prelude::*;
 
 actions! {
     FWD, BACK, RIGHT, LEFT, JUMP, REBIND
@@ -37,7 +37,7 @@ fn main() -> anyhow::Result<()> {
 
 // // --- Generated Code (slightly simplified) ---
 //
-// use engine_4::prelude::*;
+// use sge::prelude::*;
 //
 // const FWD: Action = Action::new(0);
 // const BACK: Action = Action::new(1);

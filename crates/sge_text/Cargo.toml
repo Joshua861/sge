@@ -1,0 +1,23 @@
+[package]
+name = "sge_text"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+bevy_math.workspace = true
+error_union.workspace = true
+fontdue.workspace = true
+glium.workspace = true
+global = { version = "0.1.0", path = "../global" }
+sge_color.workspace = true
+sge_image = { version = "0.1.0", path = "../sge_image" }
+sge_macros.workspace = true
+sge_math.workspace = true
+sge_rendering = { version = "0.1.0", path = "../sge_rendering" }
+sge_rng = { version = "0.1.0", path = "../sge_rng" }
+sge_texture_atlas = { version = "0.1.0", path = "../sge_texture_atlas" }
+sge_textures = { version = "0.1.0", path = "../sge_textures" }
+sge_types = { version = "0.1.0", path = "../sge_types" }
+sge_window = { version = "0.1.0", path = "../sge_window" }
+termcolor.workspace = true
+thiserror.workspace = true

@@ -1,0 +1,12 @@
+[package]
+name = "sge_shapes"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+bevy_math.workspace = true
+lyon.workspace = true
+paste.workspace = true
+sge_color.workspace = true
+sge_math.workspace = true
+sge_types = { version = "0.1.0", path = "../sge_types" }

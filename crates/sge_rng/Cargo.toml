@@ -1,0 +1,10 @@
+[package]
+name = "sge_rng"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+global = { version = "0.1.0", path = "../global" }
+log.workspace = true
+rand.workspace = true
+sge_color.workspace = true

@@ -1,4 +1,4 @@
-use engine_4::prelude::*;
+use sge::prelude::*;
 
 fn main() -> anyhow::Result<()> {
     init("3D?")?;
@@ -28,8 +28,9 @@ fn main() -> anyhow::Result<()> {
             break;
         }
 
-        show_debug_info();
-        run_egui(|_| {});
+        run_egui(|ui| {
+            draw_debug_info(ui);
+        });
 
         next_frame();
     }

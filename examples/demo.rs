@@ -1,6 +1,6 @@
 use std::f32::consts::FRAC_PI_3;
 
-use engine_4::prelude::*;
+use sge::prelude::*;
 
 fn main() -> anyhow::Result<()> {
     let opts = EngineCreationOptions::builder()
@@ -15,6 +15,7 @@ fn main() -> anyhow::Result<()> {
         include_bytes!("../assets/textures/guy.jpg"),
         ImageFormat::Jpeg,
     )?;
+    let mut show_debug_info = false;
 
     loop {
         camera_controller.update();
@@ -24,7 +25,7 @@ fn main() -> anyhow::Result<()> {
         }
 
         if key_pressed(KeyCode::KeyD) {
-            show_debug_info();
+            show_debug_info = !show_debug_info;
         }
 
         if is_dark_mode {
@@ -78,14 +79,15 @@ fn main() -> anyhow::Result<()> {
             }
         }
 
-        let cursor_pos = cursor_pos();
+        let cursor_pos = last_cursor_pos();
+        draw_circle(cursor_pos, 10.0, Color::YELLOW_400);
         for y in 0..100 {
             for x in 0..100 {
                 let x = x as f32 * 100.0;
                 let y = y as f32 * 100.0;
                 let mouse_pos = screen_to_world(cursor_pos);
-                let mouse_pos = collisions::Point::new(mouse_pos);
-                let is_hovered = collisions::circle(x, y, 50.0).intersects_with(&mouse_pos);
+                let mouse_pos = collision::Point::new(mouse_pos);
+                let is_hovered = collision::circle(x, y, 50.0).intersects_with(&mouse_pos);
 
                 let color = if is_hovered {
                     Color::RED_500
@@ -143,6 +145,10 @@ fn main() -> anyhow::Result<()> {
         }
 
         run_egui(|ctx| {
+            if show_debug_info {
+                draw_debug_info(ctx);
+            }
+
             egui::Window::new("Hello, world").show(ctx, |ui| {
                 ui.label("This is a perfect engine");
 

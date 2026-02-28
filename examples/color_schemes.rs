@@ -1,6 +1,4 @@
-use bevy_math::VectorSpace;
-use engine_4::prelude::*;
-use engine_color::schemes::ColorScheme;
+use sge::prelude::*;
 
 const COLORS: ColorScheme = ColorScheme::GRUVBOX_DARK;
 

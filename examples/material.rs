@@ -1,4 +1,4 @@
-use engine_4::prelude::*;
+use sge::prelude::*;
 
 pub fn main() -> anyhow::Result<()> {
     init("Custom materials")?;

@@ -1,0 +1,13 @@
+[package]
+name = "sge_debugging"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+fps_ticker.workspace = true
+global = { version = "0.1.0", path = "../global" }
+log.workspace = true
+
+[features]
+default = ["debugging"]
+debugging = []

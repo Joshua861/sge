@@ -1,0 +1,86 @@
+use bevy_math::{Mat4, Vec2};
+use d2::{Camera2D, projection};
+use d3::Camera3D;
+use global::global;
+
+pub mod controllers;
+pub mod d2;
+pub mod d3;
+
+#[derive(Clone, Debug, Copy)]
+pub struct Cameras {
+    pub flat: Mat4,
+    pub d2: Camera2D,
+    pub d3: Camera3D,
+}
+
+global!(Cameras, cameras);
+
+pub fn init(width: u32, height: u32) {
+    let flat = projection(width, height);
+    let d2 = Camera2D::new(width, height);
+    let d3 = Camera3D::new(width, height);
+
+    set_cameras(Cameras { flat, d2, d3 });
+    log::info!("Initialized cameras");
+}
+
+pub fn update_cameras_on_resize(width: u32, height: u32) {
+    let cameras = get_cameras();
+
+    cameras.d2.update_sizes(width, height);
+    cameras.d3.update_sizes(width, height);
+    cameras.flat = projection(width, height);
+}
+
+pub fn get_camera_2d() -> &'static Camera2D {
+    &get_cameras().d2
+}
+
+pub fn get_flat_projection() -> Mat4 {
+    get_cameras().flat
+}
+
+pub fn get_camera_3d() -> &'static Camera3D {
+    &get_cameras().d3
+}
+
+pub fn get_camera_3d_mut() -> &'static mut Camera3D {
+    &mut get_cameras().d3
+}
+
+pub fn get_camera_2d_mut() -> &'static mut Camera2D {
+    &mut get_cameras().d2
+}
+
+pub fn mutate_camera_2d<T: FnOnce(&'static mut Camera2D)>(f: T) {
+    f(get_camera_2d_mut());
+    get_camera_2d_mut().mark_dirty();
+}
+
+pub fn mutate_camera_3d<T: FnOnce(&'static mut Camera3D)>(f: T) {
+    f(get_camera_3d_mut());
+    get_camera_3d_mut().mark_dirty();
+}
+
+pub fn camera2d_zoom_at(screen_pos: Vec2, zoom_factor: f32) {
+    get_camera_2d_mut().zoom_at(screen_pos, zoom_factor);
+}
+
+pub fn cameras_for_resolution(width: u32, height: u32) -> Cameras {
+    let current = get_cameras();
+    let mut d2 = current.d2;
+    d2.update_sizes(width, height);
+    let flat = projection(width, height);
+    let mut d3 = current.d3;
+    d3.update_sizes(width, height);
+    Cameras { flat, d2, d3 }
+}
+
+pub fn screen_to_world(screen_pos: Vec2) -> Vec2 {
+    get_camera_2d_mut().screen_to_world(screen_pos)
+}
+
+pub fn world_to_screen(world_pos: Vec2) -> Vec2 {
+    get_camera_2d_mut().world_to_screen(world_pos)
+}
