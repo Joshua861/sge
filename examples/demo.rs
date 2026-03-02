@@ -34,14 +34,14 @@ fn main() -> anyhow::Result<()> {
             clear_screen(Color::NEUTRAL_100);
         }
 
-        draw_poly(Vec2::splat(500.0), 7, 100.0, 5.0, Color::EMERALD_500);
+        draw_poly(Vec2::splat(500.0), 7, 100.0, 5.0, Color::GREEN_500);
         draw_circle(Vec2::new(400.0, 300.0), 100.0, Color::RED_500);
-        draw_square(Vec2::splat(200.), 200., Color::AMBER_300);
-        draw_square_outline(Vec2::splat(200.), 200., 10., Color::AMBER_400);
+        draw_square(Vec2::splat(200.), 200., Color::AMBER_400);
+        draw_square_outline(Vec2::splat(200.), 200., 10., Color::AMBER_500);
         draw_rect(
             Vec2::new(100.0, 0.0),
             Vec2::new(100.0, 200.0),
-            Color::SKY_300,
+            Color::SKY_400,
         );
         draw_tri(
             Vec2::splat(300.),
@@ -56,14 +56,14 @@ fn main() -> anyhow::Result<()> {
             10.0,
             Color::ROSE_500,
         );
-        draw_hexagon(Vec2::new(1000.0, 200.0), 200.0, Color::BLUE_400);
+        draw_hexagon(Vec2::new(1000.0, 200.0), 200.0, Color::BLUE_500);
         draw_hexagon_pointy(
             Vec2::new(1000.0, 200.0),
             100.0 * 3.0_f32.sqrt(),
             Color::BLUE_200,
         );
 
-        draw_square_world(Vec2::splat(-50.0), 100.0, Color::PINK_300);
+        draw_square_world(Vec2::splat(-50.0), 100.0, Color::PINK_400);
 
         for y in 0..20 {
             for x in 0..20 {
@@ -73,14 +73,14 @@ fn main() -> anyhow::Result<()> {
                     if x % 2 == y % 2 {
                         Color::NEUTRAL_100
                     } else {
-                        Color::NEUTRAL_900
+                        Color::BLACK
                     },
                 );
             }
         }
 
         let cursor_pos = last_cursor_pos();
-        draw_circle(cursor_pos, 10.0, Color::YELLOW_400);
+        draw_circle(cursor_pos, 10.0, Color::YELLOW_500);
         for y in 0..100 {
             for x in 0..100 {
                 let x = x as f32 * 100.0;
@@ -90,9 +90,9 @@ fn main() -> anyhow::Result<()> {
                 let is_hovered = collision::circle(x, y, 50.0).intersects_with(&mouse_pos);
 
                 let color = if is_hovered {
-                    Color::RED_500
+                    Color::RED_600
                 } else {
-                    Color::NEUTRAL_500
+                    Color::NEUTRAL_800
                 };
 
                 let pos = Vec2::new(x, y);
@@ -133,7 +133,7 @@ fn main() -> anyhow::Result<()> {
                 FRAC_PI_3,
                 Vec2::new(100.0, 0.0),
             ),
-            Color::SKY_300,
+            Color::SKY_400,
             None,
         );
 

@@ -59,3 +59,17 @@ pub use scroll::*;
 pub use sized_box::*;
 pub use stack::*;
 pub use text::*;
+
+use sge_window::window_width;
+
+pub fn media_query<T>(small: T, medium: T, large: T) -> T {
+    let width = window_width();
+
+    if width < 600.0 {
+        small
+    } else if width < 2000.0 {
+        medium
+    } else {
+        large
+    }
+}

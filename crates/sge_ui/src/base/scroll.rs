@@ -177,7 +177,9 @@ impl UiNode for Scroll {
             ui.delta_time * self.interpolation_speed,
         );
 
-        let child_dimensions = self.child.node.size(area);
+        let mut measure_area = area;
+        measure_area.size.y = f32::INFINITY;
+        let child_dimensions = self.child.node.size(measure_area);
         let max_offset = (child_dimensions.y - area.height()).max(0.0);
 
         if input.is_cursor_within_area(area) {

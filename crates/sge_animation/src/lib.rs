@@ -56,7 +56,7 @@ impl<T: Animatable + Copy, E: EasingFunction> AnimationController<T, E> {
     }
 
     pub fn now_animate_towards(&mut self, new_end: T) {
-        self.start = self.end;
+        self.start = self.value();
         self.end = new_end;
         self.start_time = time();
     }

@@ -88,19 +88,16 @@ pub fn init_custom(mut opts: Opts) -> Result<(), InitError> {
 }
 
 pub fn next_frame() {
-    sge_ui::update();
-
     let engine_start_time = Instant::now();
 
     let has_input_event = process_events();
 
     sge_input::update();
     render_frame();
-    request_redraw_if_needed();
     sge_egui::update();
-    record_frame_time(engine_start_time);
     sge_ui::update();
     sge_time::update(has_input_event);
+    record_frame_time(engine_start_time);
     request_redraw_if_needed();
 }
 

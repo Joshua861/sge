@@ -1,0 +1,67 @@
+// TODO: idea is something like this:
+//
+// ```rs
+// Hoverable(
+//     |is_hovered| {
+//         if is_hovered {
+//             foo(bar);
+//         }
+//     }, Bar::new(bar)
+// );
+// ```
+
+use std::cell::UnsafeCell;
+
+use super::*;
+
+#[derive(Debug)]
+pub struct Hoverable {
+    func: HoverFn,
+    child: Child,
+}
+
+struct HoverFn {
+    inner: UnsafeCell<Option<Box<dyn FnOnce(bool)>>>,
+}
+
+impl Debug for HoverFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("Hover function")
+    }
+}
+
+impl Hoverable {
+    pub fn new(func: Box<dyn FnOnce(bool)>, child: Child) -> UiRef {
+        Self {
+            func: HoverFn {
+                inner: UnsafeCell::new(Some(Box::new(func))),
+            },
+            child,
+        }
+        .to_ref()
+    }
+}
+
+impl UiNode for Hoverable {
+    fn preferred_dimensions(&self) -> Vec2 {
+        self.child.node.preferred_dimensions()
+    }
+
+    fn size(&self, area: Area) -> Vec2 {
+        self.child.node.size(area)
+    }
+
+    fn draw(&self, area: Area, ui: &UiState) -> Vec2 {
+        let inner = self.size(area);
+        let inner = Area::new(area.top_left, inner);
+
+        let is_hovered = ui.is_hovered(inner);
+        unsafe {
+            if let Some(f) = self.func.inner.as_mut_unchecked().take() {
+                f(is_hovered);
+            }
+        }
+
+        self.child.node.draw(area, ui)
+    }
+}

@@ -133,6 +133,7 @@ pub struct Opts {
     pub default_minify_filter: Option<MinifySamplerFilter>,
     pub wait_for_events: Option<bool>,
     pub title: String,
+    pub dithering: Option<bool>,
 }
 
 impl Opts {
@@ -333,12 +334,14 @@ impl Opts {
         let wait_for_events = self
             .wait_for_events
             .unwrap_or(default.config.wait_for_events);
+        let dithering = self.dithering.unwrap_or(default.config.dithering);
 
         let config = EngineConfig {
             use_mipmaps,
             default_magnify_filter,
             default_minify_filter,
             wait_for_events,
+            dithering,
         };
 
         EngineCreationOptions {
@@ -385,6 +388,7 @@ pub struct EngineConfig {
     pub default_minify_filter: MinifySamplerFilter,
     /// makes the engine wait for new events before re-rendering
     pub wait_for_events: bool,
+    pub dithering: bool,
 }
 
 impl Default for EngineConfig {
@@ -394,6 +398,7 @@ impl Default for EngineConfig {
             default_magnify_filter: MagnifySamplerFilter::Nearest,
             default_minify_filter: MinifySamplerFilter::LinearMipmapLinear,
             wait_for_events: false,
+            dithering: true,
         }
     }
 }
@@ -460,4 +465,20 @@ pub fn get_wait_for_events_mut() -> &'static mut bool {
 pub fn toggle_wait_for_events() {
     let config = get_config();
     config.wait_for_events = !config.wait_for_events;
+}
+
+pub fn use_dithering() {
+    get_config().dithering = true;
+}
+
+pub fn dont_use_dithering() {
+    get_config().dithering = false;
+}
+
+pub fn get_dithering_mut() -> &'static mut bool {
+    &mut get_config().dithering
+}
+
+pub fn get_dithering() -> bool {
+    get_config().dithering
 }

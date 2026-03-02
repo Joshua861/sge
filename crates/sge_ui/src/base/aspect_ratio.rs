@@ -28,10 +28,14 @@ impl UiNode for AspectRatio {
     }
 
     fn draw(&self, mut area: Area, ui: &UiState) -> Vec2 {
-        area.size = self.ratio(area.size).min(self.preferred_dimensions());
+        area.size = self.ratio(area.size);
 
         self.child.node.draw(area, ui);
 
         area.size
+    }
+
+    fn size(&self, area: Area) -> Vec2 {
+        self.ratio(area.size)
     }
 }

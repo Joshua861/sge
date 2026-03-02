@@ -1,6 +1,7 @@
 use bevy_math::Mat4;
 use glium::{DrawParameters, Surface};
 use sge_camera::get_camera_3d;
+use sge_config::get_dithering;
 use sge_debugging::*;
 use sge_math::transform::Transform3D;
 use sge_rng::rand;
@@ -29,6 +30,7 @@ impl DrawQueue3D {
                 write: true,
                 ..Default::default()
             },
+            dithering: get_dithering(),
             ..Default::default()
         };
 

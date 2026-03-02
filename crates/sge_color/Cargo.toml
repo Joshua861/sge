@@ -11,3 +11,11 @@ palette = { workspace = true }
 trig-const = { workspace = true }
 phf = { workspace = true }
 image = { workspace = true }
+
+[build-dependencies]
+palette = "0.7"
+prettyplease = "0.2"
+proc-macro2 = "1"
+quote = "1"
+serde_json = { version = "1", features = ["preserve_order"] }
+syn = { version = "2", features = ["full"] }

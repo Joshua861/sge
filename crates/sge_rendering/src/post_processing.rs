@@ -7,6 +7,7 @@ use glium::{
     uniform,
 };
 use sge_color::Color;
+use sge_config::get_dithering;
 use sge_programs::{ProgramRef, load_program};
 use sge_shapes::d2::QUAD_INDICES;
 use sge_textures::TextureRef;
@@ -130,7 +131,6 @@ impl PostProcessingEffect {
                 intensity,
                 blur_radius,
             } => {
-                // Step 1: Extract bright areas
                 let bright_texture = create_temp_texture(display, screen_size)?;
                 let mut bright_fb = SimpleFrameBuffer::new(display, &bright_texture)?;
 
@@ -141,13 +141,11 @@ impl PostProcessingEffect {
                 };
                 render_fullscreen_quad(&mut bright_fb, bright_program.get(), &uniforms)?;
 
-                // Step 2: Blur the bright areas (two-pass Gaussian)
                 let temp_texture = create_temp_texture(display, screen_size)?;
                 let mut temp_fb = SimpleFrameBuffer::new(display, &temp_texture)?;
 
                 let blur_program = get_or_create_gaussian_blur_program();
 
-                // Horizontal blur pass
                 let uniforms = uniform! {
                     tex: bright_texture.sampled(),
                     sigma: *blur_radius,
@@ -156,7 +154,6 @@ impl PostProcessingEffect {
                 };
                 render_fullscreen_quad(&mut temp_fb, blur_program.get(), &uniforms)?;
 
-                // Vertical blur pass (back to bright_fb)
                 bright_fb.clear_color(0.0, 0.0, 0.0, 0.0);
                 let uniforms = uniform! {
                     tex: temp_texture.sampled(),
@@ -166,7 +163,6 @@ impl PostProcessingEffect {
                 };
                 render_fullscreen_quad(&mut bright_fb, blur_program.get(), &uniforms)?;
 
-                // Step 3: Combine original + blurred bright areas
                 let combine_program = get_or_create_bloom_combine_program();
                 let uniforms = uniform! {
                     tex: source.get().gl_texture.sampled(),
@@ -262,6 +258,7 @@ pub(crate) fn render_fullscreen_quad<T: Surface, U: glium::uniforms::Uniforms>(
 
     let params = glium::DrawParameters {
         blend: glium::Blend::alpha_blending(),
+        dithering: get_dithering(),
         ..Default::default()
     };
 

@@ -12,6 +12,7 @@ log.workspace = true
 obj-rs.workspace = true
 sge_camera = { version = "0.1.0", path = "../sge_camera" }
 sge_color.workspace = true
+sge_config = { version = "0.1.0", path = "../sge_config" }
 sge_debugging = { version = "0.1.0", path = "../sge_debugging" }
 sge_macros.workspace = true
 sge_math.workspace = true

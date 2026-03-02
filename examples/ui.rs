@@ -26,9 +26,10 @@ fn main() -> anyhow::Result<()> {
         ui_parts.push(align_window());
         ui_parts.push(flat_window());
 
+        let padding = media_query(5.0, 10.0, 20.0);
         let ui = SizedBox::new(
             window_size(),
-            Padding::all(20.0, Grid::with_gap(2, 3, 20.0, ui_parts)),
+            Padding::all(padding, Grid::with_gap(2, 3, padding, ui_parts)),
         );
         draw_ui(ui, vec2(0.0, 0.0));
 
@@ -44,7 +45,7 @@ fn main() -> anyhow::Result<()> {
 
 fn scroll_window() -> UiRef {
     BoxFill::new(
-        Color::GRAY_700,
+        Color::GRAY_900,
         Scroll::new(
             id!(),
             Padding::all(
@@ -56,8 +57,8 @@ fn scroll_window() -> UiRef {
                             SizedBox::height(
                                 40.0,
                                 RoundedHoverFill::new(
-                                    Color::GRAY_600,
-                                    Color::GRAY_500,
+                                    Color::GRAY_800,
+                                    Color::GRAY_700,
                                     7.0,
                                     Center::new(Text::new(n)),
                                 ),
@@ -123,7 +124,7 @@ fn w95_window(texture: TextureRef, progress: f32, clear_color: &mut Color) -> Ui
 
 fn text_window() -> UiRef {
     BoxFill::new(
-        Color::NEUTRAL_800,
+        Color::NEUTRAL_950,
         Padding::all(
             20.0,
             Scroll::new(
@@ -198,7 +199,7 @@ fn flat_window() -> UiRef {
     let bars: Vec<_> = Palette::PALETTES
         .iter()
         .enumerate()
-        .map(|(i, p)| flat::LoadingBar::new_with_speed(p.v200, i as f32 * 10.0 + 10.0).height(30.0))
+        .map(|(i, p)| flat::LoadingBar::new_with_speed(p.v400, i as f32 * 10.0 + 10.0).height(30.0))
         .collect();
 
     Card::bg0_expand(FlexCol::with_gap(

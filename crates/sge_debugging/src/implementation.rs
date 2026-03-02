@@ -57,6 +57,10 @@ impl DebugInfo {
         &self.frames[self.frame_offset]
     }
 
+    pub fn previous_frame(&self) -> &FrameInfo {
+        &self.frames[(self.frame_offset + FRAME_BACKLOG - 1) % FRAME_BACKLOG]
+    }
+
     pub fn current_frame_mut(&mut self) -> &mut FrameInfo {
         &mut self.frames[self.frame_offset]
     }
@@ -83,4 +87,44 @@ pub fn min_fps() -> f64 {
 
 pub fn max_fps() -> f64 {
     get_debug_info().fps.max()
+}
+
+pub fn get_engine_time() -> f64 {
+    get_debug_info().previous_frame().engine_time
+}
+
+pub fn get_max_engine_time() -> f64 {
+    get_debug_info().max.engine_time
+}
+
+pub fn get_drawn_objects() -> usize {
+    get_debug_info().previous_frame().drawn_objects
+}
+
+pub fn get_max_drawn_objects() -> usize {
+    get_debug_info().max.drawn_objects
+}
+
+pub fn get_draw_calls() -> usize {
+    get_debug_info().previous_frame().draw_calls
+}
+
+pub fn get_max_draw_calls() -> usize {
+    get_debug_info().max.draw_calls
+}
+
+pub fn get_vertex_count() -> usize {
+    get_debug_info().previous_frame().vertex_count
+}
+
+pub fn get_max_vertex_count() -> usize {
+    get_debug_info().max.vertex_count
+}
+
+pub fn get_index_count() -> usize {
+    get_debug_info().previous_frame().index_count
+}
+
+pub fn get_max_index_count() -> usize {
+    get_debug_info().max.index_count
 }

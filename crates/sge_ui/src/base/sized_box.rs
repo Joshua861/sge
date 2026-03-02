@@ -51,6 +51,14 @@ impl SizedBox {
         }
         .to_ref()
     }
+
+    pub fn grow(child: Child) -> UiRef {
+        Self {
+            dimensions: Vec2::INFINITY,
+            child,
+        }
+        .to_ref()
+    }
 }
 
 impl UiRef {
@@ -173,6 +181,32 @@ impl UiNode for ConstrainedBox {
     fn draw(&self, mut area: Area, state: &UiState) -> Vec2 {
         area.size = self.transform_size(area.size);
         self.child.node.draw(area, state)
+    }
+}
+
+impl UiRef {
+    pub fn min_height(self, min_height: f32) -> UiRef {
+        ConstrainedBox::min_height(min_height, self)
+    }
+
+    pub fn min_width(self, min_width: f32) -> UiRef {
+        ConstrainedBox::min_width(min_width, self)
+    }
+
+    pub fn max_height(self, max_height: f32) -> UiRef {
+        ConstrainedBox::max_height(max_height, self)
+    }
+
+    pub fn max_width(self, max_width: f32) -> UiRef {
+        ConstrainedBox::max_width(max_width, self)
+    }
+
+    pub fn min_size(self, min_size: Vec2) -> UiRef {
+        ConstrainedBox::min_size(min_size, self)
+    }
+
+    pub fn max_size(self, max_size: Vec2) -> UiRef {
+        ConstrainedBox::max_size(max_size, self)
     }
 }
 

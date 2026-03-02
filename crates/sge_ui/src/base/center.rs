@@ -42,7 +42,7 @@ impl UiNode for Center {
     }
 
     fn draw(&self, mut area: Area, ui: &UiState) -> Vec2 {
-        let inner = self.preferred_dimensions();
+        let inner = self.child.node.size(area);
         let diff = (area.size - inner).max(Vec2::ZERO);
 
         if self.vertical {
@@ -54,5 +54,11 @@ impl UiNode for Center {
         }
 
         self.child.node.draw(area, ui)
+    }
+}
+
+impl UiRef {
+    pub fn center(self) -> UiRef {
+        Center::new(self)
     }
 }

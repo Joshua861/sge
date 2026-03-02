@@ -141,7 +141,6 @@ precise_cursor_movement = ["sge_input/precise_cursor_movement"]
 members = [
     ".",
     "crates/error_union",
-    "examples/perf_test",
     "crates/sge_color",
     "crates/sge_macros",
     "crates/gilrs_input_helper",

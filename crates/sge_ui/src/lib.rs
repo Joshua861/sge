@@ -1,7 +1,9 @@
+#![feature(unsafe_cell_access)]
 #![allow(clippy::new_ret_no_self)]
 
 use std::{collections::HashMap, fmt::Debug};
 
+use base::Empty;
 use bevy_math::Vec2;
 use glium::winit::event::MouseButton;
 use sge_color::Color;
@@ -26,7 +28,8 @@ macro_rules! id {
 
 pub struct UiStorage {
     states: HashMap<StateRef, SomeState>,
-    buttons_clicked: HashMap<usize, usize>,
+    elements_interacted: HashMap<usize, usize>,
+    elements_interacted_this_frame: Vec<usize>,
 }
 
 global::global!(UiStorage, ui_storage);
@@ -35,9 +38,11 @@ pub fn init_ui() {
     init_ui_nodes_storage();
     set_ui_storage(UiStorage {
         states: HashMap::new(),
-        buttons_clicked: HashMap::new(),
+        elements_interacted: HashMap::new(),
+        elements_interacted_this_frame: Vec::new(),
     });
     log::info!("Initialized sge_ui");
+    update();
 }
 
 pub struct UiState {
@@ -119,7 +124,8 @@ impl Default for UiRef {
 /// run at start of frame
 pub fn update() {
     get_ui_nodes_state().clear();
-    base::Empty.to_ref(); // set default (id: 0) node to Empty
+    get_ui_nodes_state().push(Empty.to_generic());
+    get_ui_storage().elements_interacted_this_frame.clear();
 }
 
 /// does not limit ui elements to the edge of the screen.
@@ -221,4 +227,8 @@ impl<T: Default + Debug> State<T> {
 
 pub struct SomeState {
     state: Box<dyn std::any::Any>,
+}
+
+pub fn all_elements_interacted_this_frame() -> &'static [usize] {
+    &get_ui_storage().elements_interacted_this_frame
 }

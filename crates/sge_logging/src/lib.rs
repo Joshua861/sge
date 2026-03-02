@@ -104,11 +104,11 @@ impl Logger {
 
     fn color(level: Level) -> Color {
         match level {
-            Level::Debug => Color::NEUTRAL_300,
+            Level::Debug => Color::NEUTRAL_400,
             Level::Error => Color::RED_500,
-            Level::Warn => Color::YELLOW_300,
-            Level::Info => Color::SKY_300,
-            Level::Trace => Color::NEUTRAL_500,
+            Level::Warn => Color::YELLOW_500,
+            Level::Info => Color::SKY_500,
+            Level::Trace => Color::NEUTRAL_600,
         }
     }
 

@@ -26,6 +26,6 @@ impl Button {
     }
 
     pub fn primary_text(id: usize, text: impl ToString) -> UiRef {
-        Self::text(Color::NEUTRAL_600, Color::NEUTRAL_500, id, text)
+        Self::text(Color::NEUTRAL_800, Color::NEUTRAL_700, id, text)
     }
 }

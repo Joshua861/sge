@@ -4,8 +4,13 @@ const GRID_SIZE: usize = 50;
 
 fn main() -> anyhow::Result<()> {
     init("3D?")?;
+    wait_for_events();
 
     let mut clear_color = Color::PURPLE_200;
+
+    mutate_camera_3d(|c| {
+        c.fovy = 80.0;
+    });
 
     let mut show_many = false;
     let mut orbit_controller = OrbitCameraController::new(Vec3::ZERO);
@@ -31,6 +36,84 @@ fn main() -> anyhow::Result<()> {
     }
 
     loop {
+        dont_clear_screen();
+        let ui = {
+            use ui::prelude::*;
+            let len = min_window_dimension() / 6.0;
+            let color = Color::NEUTRAL_900;
+
+            FlexCol::new([
+                FlexBox::Fixed(
+                    Col::new([
+                        Text::new("M - show many suzannes"),
+                        Text::new("Y - change color to yellow"),
+                        Text::new("G - change color to grey"),
+                        Text::new("B - change color to blue"),
+                        Text::new("hold R - rainbow background"),
+                        Text::new("K - mirror on the y axis"),
+                        Text::new(", - mirror on the z axis"),
+                        Text::new("I - toggle isometric camera"),
+                        Text::new("L - toggle locking light position to camera position"),
+                        Text::new("X - toggle grid"),
+                    ])
+                    .padding_xy(len - 50.0, (len / 5.0).floor())
+                    .fill(color)
+                    .min_height(len),
+                ),
+                FlexBox::Flex(FlexRow::new([
+                    FlexBox::Fixed(EMPTY.fill(color).width(len)),
+                    FlexBox::Flex(EMPTY.fill(clear_color)),
+                    FlexBox::Fixed(EMPTY.fill(color).width(len)),
+                ])),
+                FlexBox::Fixed(
+                    Col::new([
+                        Text::mono(format!(
+                            "FPS: A{:.2} -  M{:.2} -  m{:.2}",
+                            avg_fps(),
+                            max_fps(),
+                            min_fps()
+                        )),
+                        Text::mono(format!(
+                            "Engine time: {:.2} - M{:.2}",
+                            get_engine_time(),
+                            get_max_engine_time()
+                        )),
+                        Text::mono(format!(
+                            "Draw calls: {:.2} - M{:.2}",
+                            get_draw_calls(),
+                            get_max_draw_calls()
+                        )),
+                        Text::mono(format!(
+                            "Vertices drawn: {:.2} - M{:.2}",
+                            get_vertex_count(),
+                            get_max_vertex_count()
+                        )),
+                        Text::mono(format!(
+                            "Indices drawn: {:.2} - M{:.2}",
+                            get_index_count(),
+                            get_max_index_count()
+                        )),
+                        Text::mono(format!(
+                            "Objects drawn: {:.2} - M{:.2}",
+                            get_drawn_objects(),
+                            get_max_drawn_objects()
+                        )),
+                        if is_about_to_wait_for_input() {
+                            Text::mono("RENDERING PAUSED")
+                        } else {
+                            EMPTY
+                        },
+                    ])
+                    .padding_xy(len - 50.0, (len / 5.0).floor())
+                    .fill(color)
+                    .min_height(len),
+                ),
+            ])
+        };
+        draw_ui(ui, Vec2::ZERO);
+
+        new_draw_queues();
+
         if key_pressed(KeyCode::KeyM) {
             show_many = !show_many;
             orbit_controller.set_enabled(!show_many);
@@ -49,7 +132,7 @@ fn main() -> anyhow::Result<()> {
 
             mat.set_color("regular_color", Color::SLATE_300);
             mat.set_color("dark_color", Color::SLATE_500);
-            clear_color = Color::PURPLE_200;
+            clear_color = Color::NEUTRAL_100;
         }
 
         if key_pressed(KeyCode::KeyB) {
@@ -98,9 +181,16 @@ fn main() -> anyhow::Result<()> {
                 .set_vec3("light_pos", get_camera_3d().eye);
         }
 
-        clear_screen(clear_color);
-
         if show_many {
+            mutate_camera_3d(|camera| {
+                camera.eye = Vec3::new(
+                    grid_center,
+                    grid_center * 0.4,
+                    grid_center + grid_width * 0.6,
+                );
+                camera.target = Vec3::new(grid_center, -grid_center, 0.0);
+            });
+
             suzanne.draw_many(transforms.clone());
         } else {
             suzanne.draw();
@@ -110,37 +200,12 @@ fn main() -> anyhow::Result<()> {
             grid.draw();
         }
 
-        if show_many {
-            mutate_camera_3d(|camera| {
-                camera.eye = Vec3::new(
-                    grid_center,
-                    grid_center * 0.4,
-                    grid_center + grid_width * 0.6,
-                );
-                camera.target = Vec3::new(grid_center, 0.0, grid_center);
-            });
-        }
+        if show_many {}
 
         if should_quit() {
             break;
         }
 
-        run_egui(|ui| {
-            draw_debug_info(ui);
-
-            egui::Window::new("Keybinds").show(ui, |ui| {
-                ui.label("M - show many suzannes");
-                ui.label("Y - change color to yellow");
-                ui.label("G - change color to grey");
-                ui.label("B - change color to blue");
-                ui.label("hold R - rainbow background");
-                ui.label("K - mirror on the y axis");
-                ui.label(", - mirror on the z axis");
-                ui.label("I - toggle isometric camera");
-                ui.label("L - toggle locking light position to camera position");
-                ui.label("X - toggle grid")
-            });
-        });
         next_frame();
     }
 

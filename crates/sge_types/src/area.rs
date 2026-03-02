@@ -1,7 +1,7 @@
 use bevy_math::Vec2;
 use sge_window::window_size;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct Area {
     pub top_left: Vec2,
     pub size: Vec2,

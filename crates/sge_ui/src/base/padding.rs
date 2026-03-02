@@ -157,9 +157,38 @@ impl UiNode for Padding {
         self.child.node.preferred_dimensions() + self.extra_size()
     }
 
+    fn size(&self, area: Area) -> Vec2 {
+        let mut inner = area;
+        inner.size -= self.extra_size();
+        inner.top_left += self.offset();
+        self.child.node.size(inner) + self.extra_size()
+    }
+
     fn draw(&self, mut area: Area, state: &UiState) -> Vec2 {
         area.size -= self.extra_size();
         area.top_left += self.offset();
         self.child.node.draw(area, state) + self.extra_size()
+    }
+}
+
+impl UiRef {
+    pub fn padding(self, padding: f32) -> UiRef {
+        Padding::all(padding, self)
+    }
+
+    pub fn padding_xy(self, x: f32, y: f32) -> UiRef {
+        Padding::xy(x, y, self)
+    }
+
+    pub fn padding_horizontal(self, padding: f32) -> UiRef {
+        Padding::horizontal(padding, self)
+    }
+
+    pub fn padding_vertical(self, padding: f32) -> UiRef {
+        Padding::vertical(padding, self)
+    }
+
+    pub fn padding_tblr(self, top: f32, bottom: f32, left: f32, right: f32) -> UiRef {
+        Padding::tblr(top, bottom, left, right, self)
     }
 }

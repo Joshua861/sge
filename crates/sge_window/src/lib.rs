@@ -128,6 +128,10 @@ pub fn window_size() -> Vec2 {
     get_window_state().window_size
 }
 
+pub fn window_center() -> Vec2 {
+    window_size() / 2.0
+}
+
 pub fn window_size_u32() -> PhysicalSize<u32> {
     get_window_state().window.inner_size()
 }

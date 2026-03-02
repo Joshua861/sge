@@ -48,7 +48,11 @@ pub use sge_config::{
 };
 pub use sge_debug_visualisations::grid::create_infinite_grid;
 pub use sge_debug_visualisations::*;
-pub use sge_debugging::{avg_fps, max_fps, min_fps};
+pub use sge_debugging::{
+    avg_fps, get_draw_calls, get_drawn_objects, get_engine_time, get_index_count,
+    get_max_draw_calls, get_max_drawn_objects, get_max_engine_time, get_max_index_count,
+    get_max_vertex_count, get_vertex_count, max_fps, min_fps,
+};
 pub use sge_egui::egui_glium::egui_winit::egui;
 pub use sge_egui::run_egui;
 pub use sge_image::{Image, ImageRef};
@@ -81,6 +85,7 @@ pub use sge_rendering::object_3d::{
     Mesh, MeshRef, Object3D, Object3DRef, ObjectLoadingError, ObjectToDraw,
 };
 pub use sge_rendering::pipeline::RenderTextureRef;
+pub use sge_rendering::pipeline::new_draw_queues;
 pub use sge_rendering::post_processing::{
     PostProcessingEffect, PostProcessingError, RenderFullscreenQuadError,
     add_post_processing_effect, bloom_screen, blur_screen, brighten_screen,
@@ -122,8 +127,8 @@ pub use sge_types::{
 pub use sge_ui::{self as ui, base::EMPTY, draw_ui, draw_ui_in_area, draw_ui_unbounded, id};
 pub use sge_window::{
     SgeDisplay, WindowCreationError, WindowOptions, WindowState, dpi_scaling, get_display,
-    get_display_mut, get_window_state, max_window_dimension, min_window_dimension, window_height,
-    window_size, window_size_u32, window_width,
+    get_display_mut, get_window_state, max_window_dimension, min_window_dimension, window_center,
+    window_height, window_size, window_size_u32, window_width,
 };
 pub use si;
 pub use tunes;

@@ -1,7 +1,7 @@
 #+title: Todo
 
-- [ ] High priority bugs:
-  - [ ] tailwind colors are wrong. oklch conversion is probably wrong
+- [-] High priority bugs:
+  - [X] tailwind colors are wrong. oklch conversion is probably wrong
   - [ ] transparency
 - [X] OPTIMIZATION: do all the draws at the same time. requires adding back vertex
  colors and a bit of refactoring.
@@ -21,6 +21,8 @@
   from the drawing function and slots it in with a lower Z
 - [X] ui text wrapping
 - [ ] ui scroll culling (?)
+- [ ] custom post processing
+- [ ] fix bloom (should be easy for someone like me)
 - [ ] convert colors/data to a build.rs script using quote/prettyplease so that i
   can use real palette
 - [ ] easier physics
@@ -42,6 +44,9 @@
 - [X] gradient fill ui node
 - [ ] loading spinner
   - [ ] needs arcs
+- [ ] player controllers
+- [ ] easy physics like godot where you can say is_on_floor is_in_air is_on_wall etc.
+- [ ] platformer example
 - [ ] input
 - [ ] number input
 - [ ] slider
@@ -90,7 +95,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
 }
 
   #+end_src
-- [ ] probably split into multiple crates
+- [X] probably split into multiple crates
 - [ ] now we have logging. log things
 - [ ] SI Unit system
 - [ ] clipping/masking

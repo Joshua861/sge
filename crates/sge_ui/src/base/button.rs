@@ -29,8 +29,12 @@ impl UiNode for Button {
     fn draw(&self, area: Area, ui: &UiState) -> Vec2 {
         if ui.is_hovered(area) && ui.input().mouse_released(MouseButton::Left) {
             get_ui_storage()
-                .buttons_clicked
+                .elements_interacted
                 .insert(self.id, frame_count());
+
+            get_ui_storage()
+                .elements_interacted_this_frame
+                .push(self.id);
         }
 
         self.child.node.draw(area, ui)
@@ -39,14 +43,14 @@ impl UiNode for Button {
 
 pub fn button_clicked_this_frame(id: usize) -> bool {
     get_ui_storage()
-        .buttons_clicked
+        .elements_interacted
         .get(&id)
         .is_some_and(|&n| n == frame_count())
 }
 
 pub fn button_clicked_last_frame(id: usize) -> bool {
     get_ui_storage()
-        .buttons_clicked
+        .elements_interacted
         .get(&id)
         .is_some_and(|&n| n == frame_count() - 1)
 }

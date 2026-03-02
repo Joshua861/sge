@@ -11,11 +11,11 @@ fn main() -> anyhow::Result<()> {
     )?;
 
     loop {
-        clear_screen(Color::SKY_500);
+        clear_screen(Color::BLACK);
         orbit_controller.update();
 
         obj.draw();
-        bloom_screen(0.5, 2.0, 10.0);
+        bloom_screen(0.4, 10.0, 100.0);
 
         run_egui(|ui| {
             draw_debug_info(ui);

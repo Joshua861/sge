@@ -1,7 +1,0 @@
-[package]
-name = "perf_test"
-version = "0.1.0"
-edition = "2024"
-
-[dependencies]
-sge = { path = "../..", features = ["profile"], default-features = false }
