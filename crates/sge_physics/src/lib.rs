@@ -4,8 +4,8 @@ use bevy_math::Vec2;
 use player::{Player, PlayerKey};
 use rapier2d::prelude::*;
 use sge_api::shapes_2d::{
-    draw_circle, draw_circle_outline, draw_circle_outline_world, draw_circle_world,
-    draw_rect_outline, draw_rect_outline_world,
+    draw_arrow_world, draw_circle, draw_circle_outline, draw_circle_outline_world,
+    draw_circle_world, draw_rect_outline, draw_rect_outline_world,
 };
 use sge_color::Color;
 use sge_macros::gen_ref_type;
@@ -66,7 +66,27 @@ pub struct World {
     players: SlotMap<PlayerKey, Player>,
     handle_to_key: HashMap<RigidBodyHandle, ObjectKey>,
 
-    collisions_this_frame: HashMap<ObjectKey, Vec<(ObjectKey, CollisionPoints)>>,
+    collisions: HashMap<ObjectKey, Vec<CollisionInfo>>,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct CollisionInfo {
+    pub other: ObjectRef,
+    pub points: CollisionPoints,
+    pub event: CollisionType,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub enum CollisionType {
+    Started,
+    Ongoing,
+    Stopped,
+}
+
+impl CollisionType {
+    pub fn is_colliding(&self) -> bool {
+        matches!(self, Self::Started | Self::Ongoing)
+    }
 }
 
 impl World {
@@ -88,7 +108,7 @@ impl World {
             objects: SlotMap::with_key(),
             players: SlotMap::with_key(),
             handle_to_key: HashMap::new(),
-            collisions_this_frame: HashMap::new(),
+            collisions: HashMap::new(),
         }
         .create()
     }
@@ -130,37 +150,85 @@ impl World {
     }
 
     fn rebuild_collisions(&mut self, collision_recv: std::sync::mpsc::Receiver<CollisionEvent>) {
-        self.collisions_this_frame.clear();
+        for infos in self.collisions.values_mut() {
+            infos.retain(|i| !matches!(i.event, CollisionType::Stopped));
+            for info in infos.iter_mut() {
+                if matches!(info.event, CollisionType::Started) {
+                    info.event = CollisionType::Ongoing;
+                }
+            }
+        }
+        self.collisions.retain(|_, v| !v.is_empty());
+
+        let world_ref = WorldRef(self.id);
 
         while let Ok(event) = collision_recv.try_recv() {
-            if let CollisionEvent::Started(ch1, ch2, _) = event {
-                let rb1 = self.collider_set[ch1].parent();
-                let rb2 = self.collider_set[ch2].parent();
-
-                let (rb1, rb2) = match (rb1, rb2) {
-                    (Some(a), Some(b)) => (a, b),
-                    _ => continue,
-                };
-
-                let key1 = match self.handle_to_key.get(&rb1) {
-                    Some(k) => *k,
-                    None => continue,
-                };
-                let key2 = match self.handle_to_key.get(&rb2) {
-                    Some(k) => *k,
-                    None => continue,
-                };
-
-                let points = self.compute_collision_points(ch1, ch2, key1, key2);
-
-                self.collisions_this_frame
-                    .entry(key1)
-                    .or_default()
-                    .push((key2, points));
-                self.collisions_this_frame
-                    .entry(key2)
-                    .or_default()
-                    .push((key1, invert(points)));
+            match event {
+                CollisionEvent::Started(ch1, ch2, _) => {
+                    let rb1 = self.collider_set[ch1].parent();
+                    let rb2 = self.collider_set[ch2].parent();
+                    let (rb1, rb2) = match (rb1, rb2) {
+                        (Some(a), Some(b)) => (a, b),
+                        _ => continue,
+                    };
+                    let key1 = match self.handle_to_key.get(&rb1) {
+                        Some(k) => *k,
+                        None => continue,
+                    };
+                    let key2 = match self.handle_to_key.get(&rb2) {
+                        Some(k) => *k,
+                        None => continue,
+                    };
+                    let points = self.compute_collision_points(ch1, ch2, key1, key2);
+                    self.collisions
+                        .entry(key1)
+                        .or_default()
+                        .push(CollisionInfo {
+                            other: ObjectRef {
+                                world: world_ref,
+                                key: key2,
+                            },
+                            points,
+                            event: CollisionType::Started,
+                        });
+                    self.collisions
+                        .entry(key2)
+                        .or_default()
+                        .push(CollisionInfo {
+                            other: ObjectRef {
+                                world: world_ref,
+                                key: key1,
+                            },
+                            points: invert(points),
+                            event: CollisionType::Started,
+                        });
+                }
+                CollisionEvent::Stopped(ch1, ch2, _) => {
+                    let rb1 = self.collider_set[ch1].parent();
+                    let rb2 = self.collider_set[ch2].parent();
+                    let (rb1, rb2) = match (rb1, rb2) {
+                        (Some(a), Some(b)) => (a, b),
+                        _ => continue,
+                    };
+                    let key1 = match self.handle_to_key.get(&rb1) {
+                        Some(k) => *k,
+                        None => continue,
+                    };
+                    let key2 = match self.handle_to_key.get(&rb2) {
+                        Some(k) => *k,
+                        None => continue,
+                    };
+                    if let Some(infos) = self.collisions.get_mut(&key1) {
+                        if let Some(info) = infos.iter_mut().find(|i| i.other.key == key2) {
+                            info.event = CollisionType::Stopped;
+                        }
+                    }
+                    if let Some(infos) = self.collisions.get_mut(&key2) {
+                        if let Some(info) = infos.iter_mut().find(|i| i.other.key == key1) {
+                            info.event = CollisionType::Stopped;
+                        }
+                    }
+                }
             }
         }
     }
@@ -278,7 +346,7 @@ impl World {
                 true,
             );
         }
-        self.collisions_this_frame.remove(&key);
+        self.collisions.remove(&key);
     }
 
     pub fn set_gravity(&mut self, gravity: f32) {
@@ -365,6 +433,35 @@ impl World {
                 Bounds::Point => draw_circle_world(pos, 2.0, Color::RED_500),
             }
         }
+
+        for (a, infos) in &self.collisions {
+            let a = &self.objects[*a];
+            let pos = pos_from_rapier(self.rigid_body_set[a.rigid_body].position());
+
+            for info in infos {
+                let display_length = if info.points.depth > 0.0 {
+                    info.points.depth
+                } else {
+                    60.0
+                };
+                draw_arrow_world(
+                    pos,
+                    pos + info.points.normal * display_length,
+                    2.0,
+                    Color::NEUTRAL_500.with_alpha(0.3),
+                );
+            }
+
+            if !infos.is_empty() {
+                match a.bounds {
+                    Bounds::Circle(r) => draw_circle_outline_world(pos, r, Color::YELLOW_500, 3.0),
+                    Bounds::Rect(size) => {
+                        draw_rect_outline_world(pos - size * 0.5, size, 2.0, Color::YELLOW_500)
+                    }
+                    Bounds::Point => draw_circle_world(pos, 2.0, Color::YELLOW_500),
+                }
+            }
+        }
     }
 }
 
@@ -410,6 +507,7 @@ pub struct CollisionPoints {
     pub collision: bool,
 }
 
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct ObjectRef {
     world: WorldRef,
     key: ObjectKey,
@@ -461,9 +559,9 @@ impl ObjectRef {
         self.world.is_dynamic(self.key)
     }
 
-    pub fn collisions(&self) -> &[(ObjectKey, CollisionPoints)] {
+    pub fn collisions(&self) -> &[CollisionInfo] {
         self.world
-            .collisions_this_frame
+            .collisions
             .get(&self.key)
             .map(Vec::as_slice)
             .unwrap_or(&[])
@@ -473,15 +571,15 @@ impl ObjectRef {
         !self.collisions().is_empty()
     }
 
-    pub fn is_colliding_with(&self, other: ObjectKey) -> bool {
-        self.collisions().iter().any(|(k, _)| *k == other)
+    pub fn is_colliding_with(&self, other: ObjectRef) -> bool {
+        self.collisions().iter().any(|i| i.other == other)
     }
 
-    pub fn check_collision_with(&self, other: ObjectKey) -> Option<CollisionPoints> {
+    pub fn check_collision_with(&self, other: ObjectRef) -> Option<CollisionPoints> {
         self.collisions()
             .iter()
-            .find(|(k, _)| *k == other)
-            .map(|(_, p)| *p)
+            .find(|i| i.other == other)
+            .map(|i| i.points)
     }
 
     pub fn remove(mut self) {

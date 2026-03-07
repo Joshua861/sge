@@ -867,3 +867,45 @@ pub fn draw_poly_outline_world(
         );
     }
 }
+
+pub fn draw_arrow(start: Vec2, end: Vec2, thickness: f32, color: Color) {
+    draw_line(start, end, thickness, color);
+
+    let dir = (end - start).normalize();
+    let perp = Vec2::new(-dir.y, dir.x);
+    let head_size = thickness * 4.0;
+
+    draw_line(
+        end,
+        end - dir * head_size + perp * head_size / 2.0,
+        thickness,
+        color,
+    );
+    draw_line(
+        end,
+        end - dir * head_size - perp * head_size / 2.0,
+        thickness,
+        color,
+    );
+}
+
+pub fn draw_arrow_world(start: Vec2, end: Vec2, thickness: f32, color: Color) {
+    draw_line_world(start, end, thickness, color);
+
+    let dir = (end - start).normalize();
+    let perp = Vec2::new(-dir.y, dir.x);
+    let head_size = thickness * 4.0;
+
+    draw_line_world(
+        end,
+        end - dir * head_size + perp * head_size / 2.0,
+        thickness,
+        color,
+    );
+    draw_line_world(
+        end,
+        end - dir * head_size - perp * head_size / 2.0,
+        thickness,
+        color,
+    );
+}

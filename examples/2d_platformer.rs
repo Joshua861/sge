@@ -20,7 +20,7 @@ fn main() -> anyhow::Result<()> {
     };
 
     const PREV_LEN: usize = 100;
-    const PREV_REPEAT: usize = 5;
+    const PREV_REPEAT: usize = 10;
     let mut prev_pos = [Vec2::ZERO; PREV_LEN];
     let mut write_head: usize = 0;
 
@@ -33,17 +33,21 @@ fn main() -> anyhow::Result<()> {
 
     player.controller.set_move_speed(5.0);
     player.controller.set_double_jumps(1);
-    player.controller.set_jump_velocity(10.0);
+    player.controller.set_jump_velocity(13.0);
     world.set_gravity(50.0);
 
-    let floor = Rect::new(
-        Vec2::new(-500.0, 200.0),
-        Vec2::new(1000.0, 20.0),
-        Color::NEUTRAL_800,
-    );
-    world
-        .create_fixed(Bounds::Rect(floor.size))
-        .with_position(floor.center());
+    let platforms = vec![
+        platform(-500.0, 400.0, 1000.0),
+        platform(-400.0, 250.0, 200.0),
+        platform(200.0, 250.0, 200.0),
+        platform(-100.0, 100.0, 200.0),
+    ];
+
+    for p in &platforms {
+        world
+            .create_fixed(Bounds::Rect(p.size))
+            .with_position(p.center());
+    }
 
     let mut debug_mode = false;
 
@@ -54,11 +58,28 @@ fn main() -> anyhow::Result<()> {
             debug_mode = !debug_mode;
         }
 
+        if key_pressed(KeyCode::KeyR) {
+            player.controller.set_position(Vec2::new(0.0, -200.0));
+        }
+
         if debug_mode {
             world.draw_colliders_world();
         }
 
-        world.update();
+        if player.controller.position().y > 1000.0 {
+            player.controller.add_impulse(Vec2::Y * 15.0);
+        }
+
+        {
+            let ppos = player.controller.position();
+            let cpos = get_camera_2d().translation;
+            let (normal, len) = (ppos - cpos).normalize_and_length();
+
+            if len > 300.0 {
+                let pos = -normal * 300.0 + ppos;
+                mutate_camera_2d(|c| c.translation = pos);
+            }
+        }
 
         for i in 0..PREV_REPEAT {
             let ratio = (i + 1) as f32 / PREV_REPEAT as f32;
@@ -82,8 +103,13 @@ fn main() -> anyhow::Result<()> {
             }
 
             draw_circle_world(player.controller.position(), PLAYER_RADIUS, player.color);
-            draw_world(floor);
+
+            for p in &platforms {
+                draw_world(*p);
+            }
         }
+
+        world.update();
 
         if should_quit() {
             break;
@@ -93,4 +119,8 @@ fn main() -> anyhow::Result<()> {
     }
 
     Ok(())
+}
+
+fn platform(x: f32, y: f32, w: f32) -> Rect {
+    Rect::new(Vec2::new(x, y), Vec2::new(w, 20.0), Color::NEUTRAL_800)
 }

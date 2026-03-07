@@ -157,7 +157,7 @@ pub fn gen_ref_type(input: TokenStream) -> TokenStream {
     );
 
     quote! {
-        #[derive(Clone, Copy, PartialEq, Eq, Ord, PartialOrd, Hash)]
+        #[derive(Clone, Copy, PartialEq, Eq, Ord, PartialOrd, Hash, Debug)]
         pub struct #ty_ref(pub(crate) usize);
 
         #[allow(static_mut_refs)]

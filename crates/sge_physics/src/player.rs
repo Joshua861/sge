@@ -15,7 +15,7 @@ new_key_type! {
     pub struct PlayerKey;
 }
 
-use crate::{Bounds, ObjectHandles, ObjectKey, World, WorldRef};
+use crate::*;
 
 pub(crate) struct Player {
     key: PlayerKey,
@@ -133,6 +133,71 @@ impl World {
 
         for pk in keys {
             self.step_player(pk, dt, now);
+            self.populate_player_collisions(pk);
+        }
+    }
+
+    fn populate_player_collisions(&mut self, pk: PlayerKey) {
+        let p = &self.players[pk];
+        let player_key = p.object;
+        let collider_handle = self.objects[player_key].collider;
+        let world_ref = WorldRef(self.id);
+
+        let contacts: Vec<(ObjectKey, CollisionPoints)> = self
+            .narrow_phase
+            .contact_pairs_with(collider_handle)
+            .filter_map(|contact_pair| {
+                let other_collider = if contact_pair.collider1 == collider_handle {
+                    contact_pair.collider2
+                } else {
+                    contact_pair.collider1
+                };
+                let rb = self.collider_set[other_collider].parent()?;
+                let other_key = *self.handle_to_key.get(&rb)?;
+                let points = self.compute_collision_points(
+                    collider_handle,
+                    other_collider,
+                    player_key,
+                    other_key,
+                );
+                Some((other_key, points))
+            })
+            .collect();
+
+        if let Some(old) = self.collisions.get(&player_key) {
+            let old_keys: Vec<ObjectKey> = old.iter().map(|i| i.other.key).collect();
+            for old_key in old_keys {
+                if let Some(infos) = self.collisions.get_mut(&old_key) {
+                    infos.retain(|i| i.other.key != player_key);
+                }
+            }
+        }
+
+        self.collisions.remove(&player_key);
+
+        for (other_key, points) in contacts {
+            self.collisions
+                .entry(player_key)
+                .or_default()
+                .push(CollisionInfo {
+                    other: ObjectRef {
+                        world: world_ref,
+                        key: other_key,
+                    },
+                    points,
+                    event: CollisionType::Ongoing,
+                });
+            self.collisions
+                .entry(other_key)
+                .or_default()
+                .push(CollisionInfo {
+                    other: ObjectRef {
+                        world: world_ref,
+                        key: player_key,
+                    },
+                    points: invert(points),
+                    event: CollisionType::Ongoing,
+                });
         }
     }
 
@@ -276,8 +341,8 @@ impl PlayerController {
 
     pub fn set_position(&mut self, pos: Vec2) {
         let rb_handle = self.value.object().rigid_body;
-        let new_pos = crate::pos_to_rapier(pos);
-        self.value.world.rigid_body_set[rb_handle].set_next_kinematic_position(new_pos);
+        let iso = Isometry::translation(pos.x, pos.y);
+        self.value.world.rigid_body_set[rb_handle].set_next_kinematic_position(iso);
     }
 
     pub fn position(&self) -> Vec2 {

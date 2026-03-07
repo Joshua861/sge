@@ -83,12 +83,6 @@ pub struct SomeNode {
 
 gen_ref_type!(SomeNode, UiRef, ui_nodes);
 
-impl Debug for UiRef {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.node.fmt(f)
-    }
-}
-
 pub trait UiNode: Debug {
     fn preferred_dimensions(&self) -> Vec2;
     fn draw(&self, area: Area, ui: &UiState) -> Vec2;

@@ -54,12 +54,6 @@ pub struct Glyph {
 
 gen_ref_type!(SgeFont, FontRef, fonts);
 
-impl ::std::fmt::Debug for FontRef {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
-
 pub struct TextMeasureCache {
     map: HashMap<(u32, String), Vec2>,
 }

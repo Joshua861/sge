@@ -25,8 +25,8 @@
 - [ ] fix bloom (should be easy for someone like me)
 - [ ] convert colors/data to a build.rs script using quote/prettyplease so that i
   can use real palette
-- [ ] easier physics
-- [ ] physics could look like this
+- [X] easier physics
+- [X] physics could look like this
 #+begin_src rust
 struct Player {
     sprite: TextureRef,
