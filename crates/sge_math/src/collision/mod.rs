@@ -43,12 +43,12 @@ impl Point {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub struct AABB2D {
+pub struct Aabb2d {
     pub min: Vec2,
     pub max: Vec2,
 }
 
-impl AABB2D {
+impl Aabb2d {
     pub fn new(min: Vec2, max: Vec2) -> Self {
         Self { min, max }
     }
@@ -61,7 +61,7 @@ impl AABB2D {
         }
     }
 
-    pub fn intersects(&self, other: &AABB2D) -> bool {
+    pub fn intersects(&self, other: &Aabb2d) -> bool {
         self.min.x <= other.max.x
             && self.max.x >= other.min.x
             && self.min.y <= other.max.y
@@ -80,7 +80,7 @@ impl AABB2D {
         let (view_min, view_max) = camera.visible_bounds();
 
         let margin = window_height().max(window_width()) / camera.scale;
-        let view_bounds = AABB2D::new(
+        let view_bounds = Aabb2d::new(
             view_min - Vec2::splat(margin),
             view_max + Vec2::splat(margin),
         );
@@ -106,28 +106,55 @@ impl AABB2D {
     pub fn is_mouse_clicked_on(&self, mouse_button: MouseButton) -> bool {
         self.is_mouse_over() && mouse_pressed(mouse_button)
     }
+
+    pub fn union(&self, other: Self) -> Self {
+        Self {
+            min: self.min.min(other.min),
+            max: self.max.max(other.max),
+        }
+    }
+
+    pub fn half_extents(&self) -> Vec2 {
+        (self.max - self.min) * 0.5
+    }
+
+    pub fn center(&self) -> Vec2 {
+        (self.min + self.max) * 0.5
+    }
+
+    pub fn area(&self) -> f32 {
+        let e = self.max - self.min;
+        e.x * e.y
+    }
+
+    pub fn contains(&self, other: &Self) -> bool {
+        self.min.x <= other.min.x
+            && self.min.y <= other.min.y
+            && self.max.x >= other.max.x
+            && self.max.y >= other.max.y
+    }
 }
 
 pub trait HasBounds2D {
-    fn bounds(&self) -> AABB2D;
+    fn bounds(&self) -> Aabb2d;
 }
 
 impl HasBounds2D for Circle {
-    fn bounds(&self) -> AABB2D {
-        AABB2D::from_center_size(self.center, Vec2::splat(self.radius * 2.0))
+    fn bounds(&self) -> Aabb2d {
+        Aabb2d::from_center_size(self.center, Vec2::splat(self.radius * 2.0))
     }
 }
 
 impl HasBounds2D for Square {
-    fn bounds(&self) -> AABB2D {
-        AABB2D::from_center_size(self.center, Vec2::splat(self.half_size * 2.0))
+    fn bounds(&self) -> Aabb2d {
+        Aabb2d::from_center_size(self.center, Vec2::splat(self.half_size * 2.0))
     }
 }
 
 impl HasBounds2D for Polygon {
-    fn bounds(&self) -> AABB2D {
+    fn bounds(&self) -> Aabb2d {
         if self.vertices.is_empty() {
-            return AABB2D::new(Vec2::ZERO, Vec2::ZERO);
+            return Aabb2d::new(Vec2::ZERO, Vec2::ZERO);
         }
 
         let mut min = self.vertices[0];
@@ -138,13 +165,13 @@ impl HasBounds2D for Polygon {
             max = max.max(*vertex);
         }
 
-        AABB2D::new(min, max)
+        Aabb2d::new(min, max)
     }
 }
 
 impl HasBounds2D for Point {
-    fn bounds(&self) -> AABB2D {
-        AABB2D::from_center_size(self.position, Vec2::ZERO)
+    fn bounds(&self) -> Aabb2d {
+        Aabb2d::from_center_size(self.position, Vec2::ZERO)
     }
 }
 
@@ -482,17 +509,17 @@ pub fn ellipse(x: f32, y: f32, rx: f32, ry: f32) -> Circle {
     }
 }
 
-pub fn rect(x: f32, y: f32, w: f32, h: f32) -> AABB2D {
+pub fn rect(x: f32, y: f32, w: f32, h: f32) -> Aabb2d {
     let min = Vec2::new(x, y);
     let size = Vec2::new(w, h);
-    AABB2D {
+    Aabb2d {
         min,
         max: min + size,
     }
 }
 
-pub fn rect_from_min_max(min: Vec2, max: Vec2) -> AABB2D {
-    AABB2D { min, max }
+pub fn rect_from_min_max(min: Vec2, max: Vec2) -> Aabb2d {
+    Aabb2d { min, max }
 }
 
 pub fn square(x: f32, y: f32, size: f32) -> Square {

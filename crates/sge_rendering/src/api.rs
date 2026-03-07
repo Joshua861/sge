@@ -3,7 +3,7 @@ use glium::texture::TextureCreationError;
 use log::warn;
 use sge_camera::cameras_for_resolution;
 use sge_color::Color;
-use sge_math::{collision::AABB2D, transform::Transform2D};
+use sge_math::{collision::Aabb2d, transform::Transform2D};
 use sge_programs::{
     BLINN_PHONG_3D_PROGRAM, FLAT_3D_PROGRAM, GOURAUD_3D_PROGRAM, TEXTURED_3D_PROGRAM,
 };
@@ -38,7 +38,7 @@ pub fn draw_texture_world(texture: TextureRef, position: Vec2, scale: f32) {
 }
 
 pub fn draw_texture_scaled_world(texture: TextureRef, position: Vec2, scale: Vec2) {
-    let bounds = AABB2D::new(position - scale, position + scale);
+    let bounds = Aabb2d::new(position - scale, position + scale);
 
     if !bounds.is_visible_in_world() {
         return;
@@ -58,7 +58,7 @@ pub fn draw_texture_world_ex(
     color: Color,
     region: Option<bevy_math::Rect>,
 ) {
-    let bounds = AABB2D::new(
+    let bounds = Aabb2d::new(
         transform.translation() - transform.scale(),
         transform.translation() + transform.scale(),
     );

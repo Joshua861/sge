@@ -1,16 +1,6 @@
-extern crate bevy_math;
-extern crate egui_glium;
-extern crate image;
-extern crate palette;
-extern crate phf;
-extern crate trig_const;
-
-use std::f64::consts::PI;
-
 use bevy_math::Vec4;
 use egui_glium::egui_winit::egui::Color32;
 use palette::{Hsl, IntoColor, LinSrgb, LinSrgba, Oklch, Srgb, Srgba};
-use trig_const::{cos, sin};
 use u8::Pixel;
 
 mod data;
@@ -124,13 +114,13 @@ impl Color {
         (oklch.l, oklch.chroma, oklch.hue.into_positive_degrees())
     }
 
-    pub const fn from_oklch_with_alpha(lightness: f32, chroma: f32, hue: f32, alpha: f32) -> Self {
+    pub fn from_oklch_with_alpha(lightness: f32, chroma: f32, hue: f32, alpha: f32) -> Self {
         let (r, g, b, a) =
             oklch_to_lin_srgba(lightness as f64, chroma as f64, hue as f64, alpha as f64);
         Self::from_rgba(r as f32, g as f32, b as f32, a as f32)
     }
 
-    pub const fn from_oklch(lightness: f32, chroma: f32, hue: f32) -> Self {
+    pub fn from_oklch(lightness: f32, chroma: f32, hue: f32) -> Self {
         let (r, g, b) = oklch_to_lin_srgb(lightness as f64, chroma as f64, hue as f64);
         Self::new(r as f32, g as f32, b as f32)
     }
@@ -388,33 +378,17 @@ impl From<Color> for Color32 {
     }
 }
 
-pub const fn oklch_to_lin_srgb(lightness: f64, chroma: f64, hue: f64) -> (f64, f64, f64) {
-    let hue_rad = hue * (PI / 180.0);
-
-    let a = chroma * cos(hue_rad);
-    let b = chroma * sin(hue_rad);
-
-    let l_ = lightness + 0.3963377774 * a + 0.2158037573 * b;
-    let m_ = lightness - 0.1055613458 * a - 0.0638541728 * b;
-    let s_ = lightness - 0.0894841775 * a - 1.2914855480 * b;
-
-    let l = l_ * l_ * l_;
-    let m = m_ * m_ * m_;
-    let s = s_ * s_ * s_;
-
-    let r = 4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s;
-    let g = -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s;
-    let b_ = -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s;
-
-    (r, g, b_)
+fn oklch_to_lin_srgb(lightness: f64, chroma: f64, hue: f64) -> (f64, f64, f64) {
+    let oklch = Oklch::new(lightness as f32, chroma as f32, hue as f32);
+    let lin_rgb: LinSrgb = oklch.into_color();
+    (
+        lin_rgb.red as f64,
+        lin_rgb.green as f64,
+        lin_rgb.blue as f64,
+    )
 }
 
-const fn oklch_to_lin_srgba(
-    lightness: f64,
-    chroma: f64,
-    hue: f64,
-    alpha: f64,
-) -> (f64, f64, f64, f64) {
+fn oklch_to_lin_srgba(lightness: f64, chroma: f64, hue: f64, alpha: f64) -> (f64, f64, f64, f64) {
     let (r, g, b) = oklch_to_lin_srgb(lightness, chroma, hue);
     (r, g, b, alpha)
 }

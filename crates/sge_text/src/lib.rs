@@ -519,6 +519,34 @@ pub fn draw_text(text: impl AsRef<str>, position: Vec2) -> TextDimensions {
     )
 }
 
+pub fn draw_colored_text(text: impl AsRef<str>, position: Vec2, color: Color) -> TextDimensions {
+    draw_text_to(
+        text,
+        TextDrawParams {
+            position,
+            color,
+            ..Default::default()
+        },
+        draw_queue_2d(),
+    )
+}
+
+pub fn draw_colored_text_world(
+    text: impl AsRef<str>,
+    position: Vec2,
+    color: Color,
+) -> TextDimensions {
+    draw_text_to(
+        text,
+        TextDrawParams {
+            position,
+            color,
+            ..Default::default()
+        },
+        world_draw_queue_2d(),
+    )
+}
+
 pub fn draw_text_size(text: impl AsRef<str>, position: Vec2, size: usize) -> TextDimensions {
     draw_text_to(
         text,

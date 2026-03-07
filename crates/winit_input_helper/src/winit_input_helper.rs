@@ -3,7 +3,7 @@ use winit::event::{DeviceEvent, MouseButton, WindowEvent};
 use winit::keyboard::{Key, KeyCode, PhysicalKey};
 
 use crate::current_input::{
-    CurrentInput, KeyAction, MouseAction, ScanCodeAction, mouse_button_to_int,
+    mouse_button_to_int, CurrentInput, KeyAction, MouseAction, ScanCodeAction,
 };
 use std::{path::PathBuf, time::Duration};
 use web_time::Instant;

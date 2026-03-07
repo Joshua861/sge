@@ -1,6 +1,6 @@
 use bevy_math::Vec2;
 use sge_color::Color;
-use sge_math::collision::{AABB2D, HasBounds2D};
+use sge_math::collision::{Aabb2d, HasBounds2D};
 use sge_types::Vertex2D;
 use std::f32::consts::TAU;
 
@@ -25,8 +25,8 @@ impl Shape2D for Circle {
 }
 
 impl HasBounds2D for Circle {
-    fn bounds(&self) -> AABB2D {
-        AABB2D::from_center_size(self.center, self.radius * 2.0)
+    fn bounds(&self) -> Aabb2d {
+        Aabb2d::from_center_size(self.center, self.radius * 2.0)
     }
 }
 
@@ -53,9 +53,9 @@ pub struct CircleOutline {
 }
 
 impl HasBounds2D for CircleOutline {
-    fn bounds(&self) -> AABB2D {
+    fn bounds(&self) -> Aabb2d {
         let total_radius = self.radius + Vec2::splat(self.thickness);
-        AABB2D::from_center_size(self.center, total_radius * 2.0)
+        Aabb2d::from_center_size(self.center, total_radius * 2.0)
     }
 }
 
@@ -75,8 +75,8 @@ pub struct RoundedRectangle {
 }
 
 impl HasBounds2D for RoundedRectangle {
-    fn bounds(&self) -> AABB2D {
-        AABB2D::new(self.top_left, self.top_left + self.size)
+    fn bounds(&self) -> Aabb2d {
+        Aabb2d::new(self.top_left, self.top_left + self.size)
     }
 }
 
@@ -173,8 +173,8 @@ pub struct Rect {
 }
 
 impl HasBounds2D for Rect {
-    fn bounds(&self) -> AABB2D {
-        AABB2D::new(self.top_left, self.top_left + self.size)
+    fn bounds(&self) -> Aabb2d {
+        Aabb2d::new(self.top_left, self.top_left + self.size)
     }
 }
 
@@ -231,10 +231,10 @@ pub struct Triangle {
 }
 
 impl HasBounds2D for Triangle {
-    fn bounds(&self) -> AABB2D {
+    fn bounds(&self) -> Aabb2d {
         let min = self.points[0].min(self.points[1]).min(self.points[2]);
         let max = self.points[0].max(self.points[1]).max(self.points[2]);
-        AABB2D::new(min, max)
+        Aabb2d::new(min, max)
     }
 }
 
@@ -255,9 +255,9 @@ pub struct Line2D {
 }
 
 impl HasBounds2D for Line2D {
-    fn bounds(&self) -> AABB2D {
+    fn bounds(&self) -> Aabb2d {
         let half_thick = self.thickness * 0.5;
-        AABB2D::new(
+        Aabb2d::new(
             self.start.min(self.end) - Vec2::splat(half_thick),
             self.start.max(self.end) + Vec2::splat(half_thick),
         )
@@ -321,8 +321,8 @@ pub struct Poly {
 }
 
 impl HasBounds2D for Poly {
-    fn bounds(&self) -> AABB2D {
-        AABB2D::from_center_size(self.center, Vec2::splat(self.radius * 2.0))
+    fn bounds(&self) -> Aabb2d {
+        Aabb2d::from_center_size(self.center, Vec2::splat(self.radius * 2.0))
     }
 }
 
@@ -362,9 +362,9 @@ pub struct CustomShape {
 }
 
 impl HasBounds2D for CustomShape {
-    fn bounds(&self) -> AABB2D {
+    fn bounds(&self) -> Aabb2d {
         if self.points.is_empty() {
-            return AABB2D::new(Vec2::ZERO, Vec2::ZERO);
+            return Aabb2d::new(Vec2::ZERO, Vec2::ZERO);
         }
 
         let mut min = self.points[0];
@@ -375,7 +375,7 @@ impl HasBounds2D for CustomShape {
             max = max.max(*point);
         }
 
-        AABB2D::new(min, max)
+        Aabb2d::new(min, max)
     }
 }
 

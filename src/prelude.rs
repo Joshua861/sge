@@ -25,12 +25,10 @@ pub use image::{self, ImageFormat};
 pub use include_folder::include_folder;
 pub use log::{self, Level, LevelFilter, debug, error, info, trace, warn};
 pub use nalgebra::vector;
-pub use rapier2d::prelude as physics;
-pub use rapier2d::prelude::{Collider, ColliderBuilder, RigidBody, RigidBodyBuilder};
 pub use sge_animation::*;
 pub use sge_api::area::AreaExt;
 pub use sge_api::shapes_2d::*;
-pub use sge_api::{Drawable, draw};
+pub use sge_api::{Drawable, draw, draw_world};
 pub use sge_audio::{audio, play_sound};
 pub use sge_camera::controllers::orbit::OrbitCameraController;
 pub use sge_camera::controllers::pan::PanningCameraController;
@@ -76,7 +74,10 @@ pub use sge_macros::{actions, bind};
 pub use sge_math::collision::{self, IntersectsWith};
 pub use sge_math::transform::{Transform2D, Transform3D};
 pub use sge_math::usize_rect::USizeRect;
-pub use sge_physics::*;
+pub use sge_physics::{
+    Bounds, CollisionPoints, ObjectRef, World, WorldRef, player::PlayerBindBuilder,
+    player::PlayerController,
+};
 pub use sge_programs::include_program;
 pub use sge_programs::load_program;
 pub use sge_rendering::api::*;
@@ -102,12 +103,12 @@ pub use sge_text::rich_text::*;
 pub use sge_text::{
     FontError, FontRef, Glyph, MONO, SANS, SANS_BOLD, SANS_BOLD_ITALIC, SANS_DISPLAY, SANS_ITALIC,
     SgeFont, TextDimensions, TextDrawParams, TextMeasureCache, create_ttf_font, default_font,
-    draw_multiline_text, draw_multiline_text_ex, draw_multiline_text_size,
-    draw_multiline_text_size_world, draw_multiline_text_world, draw_multiline_text_world_ex,
-    draw_text, draw_text_ex, draw_text_size, draw_text_size_world, draw_text_world,
-    draw_text_world_ex, draw_wrapped_text_in_area, icons, load_font, measure_multiline_text,
-    measure_multiline_text_ex, measure_text, measure_text_ex, measure_wrapped_text,
-    wrap_text_to_width, wrapped_text,
+    draw_colored_text, draw_colored_text_world, draw_multiline_text, draw_multiline_text_ex,
+    draw_multiline_text_size, draw_multiline_text_size_world, draw_multiline_text_world,
+    draw_multiline_text_world_ex, draw_text, draw_text_ex, draw_text_size, draw_text_size_world,
+    draw_text_world, draw_text_world_ex, draw_wrapped_text_in_area, icons, load_font,
+    measure_multiline_text, measure_multiline_text_ex, measure_text, measure_text_ex,
+    measure_wrapped_text, wrap_text_to_width, wrapped_text,
 };
 pub use sge_texture_atlas::{
     LoadImageError, Sprite, SpriteKey, TextureAtlas, TextureAtlasRef, create_spritesheet,

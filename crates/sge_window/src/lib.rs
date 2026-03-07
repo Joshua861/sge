@@ -2,7 +2,7 @@
 
 use std::num::NonZeroU32;
 
-use bevy_math::{USizeVec2, Vec2, usizevec2};
+use bevy_math::Vec2;
 use error_union::ErrorUnion;
 use glium::{
     backend::glutin::Display,

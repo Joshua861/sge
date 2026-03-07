@@ -1,5 +1,5 @@
-use gilrs_input_helper::GilrsInputHelper;
 use gilrs::Button;
+use gilrs_input_helper::GilrsInputHelper;
 use std::thread;
 use std::time::Duration;
 
@@ -10,8 +10,7 @@ fn main() {
     println!("Press the South button (A/Cross) on any gamepad.");
     println!("Press Ctrl+C to exit.\n");
 
-    let mut input = GilrsInputHelper::new()
-        .expect("Failed to initialize gamepad input");
+    let mut input = GilrsInputHelper::new().expect("Failed to initialize gamepad input");
 
     let mut player_scores: Vec<(usize, u32)> = Vec::new();
 

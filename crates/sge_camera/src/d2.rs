@@ -163,6 +163,11 @@ impl Camera2D {
 
         self.projection_matrix
     }
+
+    pub fn translate_by(&mut self, delta: Vec2) {
+        self.translation += delta;
+        self.mark_dirty();
+    }
 }
 
 pub fn projection_from_window(window: &Window) -> Mat4 {

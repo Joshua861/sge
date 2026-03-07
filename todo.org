@@ -26,6 +26,53 @@
 - [ ] convert colors/data to a build.rs script using quote/prettyplease so that i
   can use real palette
 - [ ] easier physics
+- [ ] physics could look like this
+#+begin_src rust
+struct Player {
+    sprite: TextureRef,
+    controller: PlayerController
+}
+
+struct Block {
+    item: Item,
+    collider: FixedCollider,
+}
+
+fn main() {
+    let world = World::new();
+
+    let mut player = Player {
+        sprite: ...,
+        controller: world.create_player_controller(),
+    };
+
+    // world would return a worldref, and is stored somewhere,
+    // that means that controller would return a reference to (world, item inside world)
+    // and you can do player.controller.update(), to take in input and move and collide
+
+    player.controller.set_binds()
+        .forward(KeyCode::KeyW) // impl Into<Key> or whatever from sge_input generic over mouse and keyboard
+        .back(KeyCode::S);
+
+    // the set_binds can just return a set binds struct that only contains a player controller reference
+    // so calling .forward(...) doesnt mutate the set bind struct at all, and you dont have to call build or anything
+
+    player.controller.velocity();
+    player.controller.set_double_jumps(2);
+    player.controller.set_coyote_time(200);
+    player.controller.is_on_ground();
+    player.controller.is_really_on_ground(); // no coyote time
+    player.controller.collisions_last_frame();
+    player.controller.can_jump();
+    player.controller.handle_jump();
+    player.controller.can_double_jump();
+    player.controller.handle_double_jump();
+    player.controller.set_max_floor_angle(f32::FRAC_PI_4)
+
+    // https://docs.godotengine.org/en/stable/classes/class_characterbody2d.html
+}
+#+end_src
+
 - [ ] proper sound
 - [ ] something is broken evident in shapes_3d example
   - [ ] needs gouraud shading
@@ -56,7 +103,7 @@
 - [X] aspect-ratio
 - [X] grid
 - [X] stack (overlay)
-- [ ] rich text (parse outside hot loop)
+- [ ] ui rich text (parse outside hot loop)
 - [X] text bold
 - [X] text italic
 - [X] scissor box

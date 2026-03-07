@@ -81,6 +81,7 @@ pub fn init_custom(mut opts: Opts) -> Result<(), InitError> {
     sge_text::init();
     sge_ui::init_ui();
     user_storage::init();
+    sge_physics::init();
 
     info!("Finished initializing engine.");
 

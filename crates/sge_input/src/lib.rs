@@ -11,8 +11,8 @@ use std::{
     collections::HashMap,
     ops::{Deref, DerefMut},
 };
-use winit::event::MouseButton;
-use winit::keyboard::{Key, KeyCode};
+pub use winit::event::MouseButton;
+pub use winit::keyboard::{Key, KeyCode};
 use winit_input_helper::WinitInputHelper;
 
 pub mod keys;
@@ -193,6 +193,12 @@ impl Input {
     }
 }
 
+impl Default for Input {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Deref for Input {
     type Target = WinitInputHelper;
 
@@ -219,8 +225,8 @@ pub fn key_pressed(keycode: KeyCode) -> bool {
 
 pub fn button_pressed(button: Button) -> bool {
     match button {
-        Button::Keyboard(key) => key_held(key),
-        Button::Mouse(button) => mouse_held(button),
+        Button::Keyboard(key) => key_pressed(key),
+        Button::Mouse(button) => mouse_pressed(button),
     }
 }
 
@@ -511,7 +517,7 @@ pub fn cursor_movements() -> Vec<Vec2> {
     get_input()
         .helper
         .cursor_movements()
-        .into_iter()
+        .iter()
         .map(|&v| v.into())
         .collect()
 }

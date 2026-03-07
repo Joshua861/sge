@@ -1,5 +1,5 @@
-use gilrs_input_helper::GilrsInputHelper;
 use gilrs::{Axis, Button};
+use gilrs_input_helper::GilrsInputHelper;
 use std::thread;
 use std::time::Duration;
 
@@ -9,8 +9,7 @@ fn main() {
     println!("Press buttons on your gamepad to see events.");
     println!("Press Ctrl+C to exit.\n");
 
-    let mut input = GilrsInputHelper::new()
-        .expect("Failed to initialize gamepad input");
+    let mut input = GilrsInputHelper::new().expect("Failed to initialize gamepad input");
 
     loop {
         // Update gamepad state
@@ -106,7 +105,11 @@ fn main() {
         for gamepad_id in input.connected_gamepads() {
             if input.was_connected(gamepad_id) {
                 let gamepad = input.gilrs().gamepad(gamepad_id);
-                println!("🎮 Gamepad connected: {} (ID: {:?})", gamepad.name(), gamepad_id);
+                println!(
+                    "🎮 Gamepad connected: {} (ID: {:?})",
+                    gamepad.name(),
+                    gamepad_id
+                );
             }
             if input.was_disconnected(gamepad_id) {
                 println!("❌ Gamepad disconnected (ID: {:?})", gamepad_id);

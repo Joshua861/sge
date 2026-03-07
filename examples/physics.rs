@@ -1,4 +1,3 @@
-// ./examples/physics.rs
 use sge::prelude::*;
 
 const BOUNDS_SIZE: Vec2 = Vec2::new(1000.0, 1000.0);
@@ -22,15 +21,11 @@ impl ShapeType {
         }
     }
 
-    fn create_collider(&self) -> ColliderBuilder {
+    fn bounds(&self) -> Bounds {
         match self {
-            Self::Circle => ColliderBuilder::ball(15.0).restitution(0.8).density(1.0),
-            Self::Square => ColliderBuilder::cuboid(15.0, 15.0)
-                .restitution(0.8)
-                .density(2.0),
-            Self::Rectangle => ColliderBuilder::cuboid(20.0, 10.0)
-                .restitution(0.8)
-                .density(1.5),
+            Self::Circle => Bounds::Circle(15.0),
+            Self::Square => Bounds::Rect(Vec2::splat(30.0)),
+            Self::Rectangle => Bounds::Rect(Vec2::new(40.0, 20.0)),
         }
     }
 
@@ -44,140 +39,93 @@ impl ShapeType {
 }
 
 fn speed_color(speed: f32) -> Color {
-    if speed > 200.0 {
-        Color::RED_500
-    } else if speed > 100.0 {
-        Color::ORANGE_500
-    } else if speed > 50.0 {
-        Color::YELLOW_500
-    } else {
-        Color::EMERALD_500
-    }
-}
-
-fn create_boundary_walls(world: &mut PhysicsWorld) -> [[Vec2; 2]; 4] {
-    let walls = [
-        [Vec2::ZERO, Vec2::new(BOUNDS_THICKNESS, BOUNDS_SIZE.y)],
-        [Vec2::ZERO, Vec2::new(BOUNDS_SIZE.x, BOUNDS_THICKNESS)],
-        [
-            Vec2::new(0.0, BOUNDS_SIZE.y - BOUNDS_THICKNESS),
-            BOUNDS_SIZE,
-        ],
-        [
-            Vec2::new(BOUNDS_SIZE.x - BOUNDS_THICKNESS, 0.0),
-            BOUNDS_SIZE,
-        ],
-    ];
-
-    for [a, b] in &walls {
-        let center = a.midpoint(*b);
-        let size = *b - *a;
-
-        let rigid_body = RigidBodyBuilder::fixed().translation(center.into()).build();
-        let collider = ColliderBuilder::cuboid(size.x / 2.0, size.y / 2.0)
-            .restitution(1.0)
-            .build();
-
-        world.insert_rigid_body_with_collider(rigid_body, collider);
-    }
-
-    walls
-}
-
-fn spawn_object(
-    world: &mut PhysicsWorld,
-    pos: Vec2,
-    velocity: nalgebra::Vector2<f32>,
-    shape_type: ShapeType,
-) -> (physics::RigidBodyHandle, physics::ColliderHandle) {
-    let rigid_body = RigidBodyBuilder::dynamic()
-        .translation(pos.into())
-        .linvel(velocity)
-        .build();
-
-    let collider = shape_type.create_collider().build();
-
-    world.insert_rigid_body_with_collider(rigid_body, collider)
+    Color::from_oklch(
+        0.8,
+        0.1 + (speed / 100.0).clamp(0.0, 0.1),
+        142.94 - (speed / 5.0).clamp(0.0, 142.94 - 26.17),
+    )
 }
 
 fn main() -> anyhow::Result<()> {
     init("Physics Showcase")?;
 
-    let mut world = PhysicsWorld::new().with_custom_gravity(Vec2::new(0.0, 1000.0));
-    let mut objects: Vec<(physics::RigidBodyHandle, physics::ColliderHandle, ShapeType)> =
-        Vec::new();
+    let mut world = World::new();
 
-    let walls = create_boundary_walls(&mut world);
+    let wall_rects = [
+        (
+            Vec2::new(BOUNDS_THICKNESS * 0.5, BOUNDS_SIZE.y * 0.5),
+            Vec2::new(BOUNDS_THICKNESS, BOUNDS_SIZE.y),
+        ),
+        (
+            Vec2::new(BOUNDS_SIZE.x * 0.5, BOUNDS_THICKNESS * 0.5),
+            Vec2::new(BOUNDS_SIZE.x, BOUNDS_THICKNESS),
+        ),
+        (
+            Vec2::new(BOUNDS_SIZE.x * 0.5, BOUNDS_SIZE.y - BOUNDS_THICKNESS * 0.5),
+            Vec2::new(BOUNDS_SIZE.x, BOUNDS_THICKNESS),
+        ),
+        (
+            Vec2::new(BOUNDS_SIZE.x - BOUNDS_THICKNESS * 0.5, BOUNDS_SIZE.y * 0.5),
+            Vec2::new(BOUNDS_THICKNESS, BOUNDS_SIZE.y),
+        ),
+    ];
 
-    for i in 0..100 {
+    for (pos, size) in wall_rects {
+        world.create_fixed(Bounds::Rect(size)).set_position(pos);
+    }
+
+    let mut objects: Vec<(ObjectRef, ShapeType)> = Vec::new();
+
+    for i in 0..50 {
         let pos = Vec2::new(
             rand::<f32>() * (BOUNDS_SIZE.x - BOUNDS_THICKNESS * 2.0) + BOUNDS_THICKNESS,
             rand::<f32>() * (BOUNDS_SIZE.y - BOUNDS_THICKNESS * 2.0) + BOUNDS_THICKNESS,
         );
-        let velocity = vector![rand::<f32>() * 500.0 - 250.0, rand::<f32>() * 500.0 - 250.0];
+        let velocity = Vec2::new(rand::<f32>() * 500.0 - 250.0, rand::<f32>() * 500.0 - 250.0);
         let shape_type = ShapeType::from_index(i);
 
-        let (body, collider) = spawn_object(&mut world, pos, velocity, shape_type);
-        objects.push((body, collider, shape_type));
+        let mut collider = world.create_dynamic(shape_type.bounds()).with_ccd();
+        collider.set_position(pos);
+        collider.set_velocity(velocity);
+        objects.push((collider, shape_type));
     }
 
     loop {
-        clear_screen(Color::NEUTRAL_700);
-        let cursor_pos = last_cursor_pos();
+        world.update();
+        clear_screen(Color::NEUTRAL_900);
 
-        if mouse_pressed(MouseButton::Left) {
-            let velocity = vector![rand::<f32>() * 100.0 - 50.0, rand::<f32>() * 100.0 - 50.0];
-            let shape_type = ShapeType::from_index(objects.len());
-            let (body, collider) = spawn_object(&mut world, cursor_pos, velocity, shape_type);
-            objects.push((body, collider, shape_type));
-        }
-
-        if mouse_held(MouseButton::Right) {
-            for (body_handle, _, _) in &objects {
-                if let Some(body) = world.get_rigid_body_mut(*body_handle) {
-                    let pos = body.translation();
-                    let to_cursor = vector![cursor_pos.x - pos.x, cursor_pos.y - pos.y];
-                    let distance = to_cursor.norm();
-
-                    if distance < FORCE_RADIUS {
-                        let strength =
-                            (1.0 - distance.powi(2) / FORCE_RADIUS.powi(2)) * FORCE_STRENGTH;
-                        let mut vel = *body.linvel();
-                        vel += to_cursor.normalize() * strength;
-                        body.set_linvel(vel, true);
-                    }
-                }
-            }
-
-            draw_circle(cursor_pos, FORCE_RADIUS, Color::CYAN_700);
-            draw_circle(cursor_pos, FORCE_RADIUS - 3.0, Color::CYAN_800);
-            draw_circle(cursor_pos, 10.0, Color::CYAN_300);
-        }
-
-        for [a, b] in &walls {
-            draw_rect(*a, *b - *a, Color::NEUTRAL_600);
-        }
-
-        for (body_handle, _, shape_type) in &objects {
-            if let Some(body) = world.get_rigid_body(*body_handle) {
-                let pos: Vec2 = (*body.translation()).into();
-                let speed = body.linvel().norm();
-                let color = speed_color(speed);
-                shape_type.draw(pos, color);
-            }
-        }
+        draw_rect(
+            Vec2::ZERO,
+            Vec2::new(BOUNDS_THICKNESS, BOUNDS_SIZE.y),
+            Color::NEUTRAL_800,
+        );
+        draw_rect(
+            Vec2::ZERO,
+            Vec2::new(BOUNDS_SIZE.x, BOUNDS_THICKNESS),
+            Color::NEUTRAL_800,
+        );
+        draw_rect(
+            Vec2::new(0.0, BOUNDS_SIZE.y - BOUNDS_THICKNESS),
+            Vec2::new(BOUNDS_SIZE.x, BOUNDS_THICKNESS),
+            Color::NEUTRAL_800,
+        );
+        draw_rect(
+            Vec2::new(BOUNDS_SIZE.x - BOUNDS_THICKNESS, 0.0),
+            Vec2::new(BOUNDS_THICKNESS, BOUNDS_SIZE.y),
+            Color::NEUTRAL_800,
+        );
 
         let ui = {
             use ui::prelude::*;
 
             Fit::new(Fill::new(
-                Color::NEUTRAL_600,
+                Color::NEUTRAL_800,
                 Padding::all(
                     50.0,
                     Col::new([
-                        Text::title("Physics showcase"),
-                        Text::new("Objects: 138"),
-                        Text::new(format!("FPS: {:.2}", avg_fps())),
+                        Text::title_nowrap("Physics showcase"),
+                        Text::mono(format!("Objects: {}", objects.len())),
+                        Text::mono(format!("FPS: {:.2}", avg_fps())),
                         Text::h2("Controls"),
                         Text::body("• Left Click: Spawn object"),
                         Text::body("• Right Click (hold): Apply force"),
@@ -187,11 +135,49 @@ fn main() -> anyhow::Result<()> {
         };
         ui::draw_ui(ui, vec2(0.0, BOUNDS_SIZE.y - BOUNDS_THICKNESS));
 
+        let cursor_pos = last_cursor_pos();
+
+        if mouse_pressed(MouseButton::Left) {
+            let velocity = Vec2::new(rand::<f32>() * 100.0 - 50.0, rand::<f32>() * 100.0 - 50.0);
+            let shape_type = ShapeType::from_index(objects.len());
+            let mut collider = world.create_dynamic(shape_type.bounds());
+            collider.set_position(cursor_pos);
+            collider.set_velocity(velocity);
+            objects.push((collider, shape_type));
+        }
+
+        for (collider, shape_type) in &objects {
+            let pos = collider.get_position();
+            let speed = collider.get_velocity().length();
+            shape_type.draw(pos, speed_color(speed));
+        }
+
+        if mouse_held(MouseButton::Right) {
+            for (collider, _) in &mut objects {
+                let pos = collider.get_position();
+                let to_cursor = cursor_pos - pos;
+                let distance = to_cursor.length();
+
+                if distance < FORCE_RADIUS && distance > 0.0 {
+                    let strength = (1.0 - distance.powi(2) / FORCE_RADIUS.powi(2)) * FORCE_STRENGTH;
+                    collider.add_velocity(to_cursor.normalize() * strength);
+                }
+            }
+
+            draw_circle_with_outline(
+                cursor_pos,
+                FORCE_RADIUS,
+                Color::CYAN_500.with_alpha(0.2),
+                Color::CYAN_500.with_alpha(0.5),
+                3.0,
+            );
+            draw_circle_with_outline(cursor_pos, 10.0, Color::CYAN_400, Color::WHITE, 3.0);
+        }
+
         if should_quit() {
             break;
         }
 
-        world.step();
         next_frame();
     }
 

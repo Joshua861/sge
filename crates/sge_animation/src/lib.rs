@@ -3,7 +3,7 @@ use std::f32::consts::PI;
 use bevy_math::{FloatExt, Quat, Vec2, Vec3, Vec4};
 use sge_color::Color;
 use sge_math::{
-    collision::{self, AABB2D},
+    collision::{self, Aabb2d},
     transform::{Transform2D, Transform3D},
 };
 use sge_rendering::shapes_3d::AABB3D;
@@ -203,7 +203,7 @@ impl Animatable for bevy_math::Rect {
     }
 }
 
-impl Animatable for AABB2D {
+impl Animatable for Aabb2d {
     fn lerp(a: Self, b: Self, progress: f32) -> Self {
         Self {
             min: Vec2::lerp(a.min, b.min, progress),

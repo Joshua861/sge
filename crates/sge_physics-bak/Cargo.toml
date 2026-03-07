@@ -5,12 +5,8 @@ edition = "2024"
 
 [dependencies]
 bevy_math.workspace = true
-crossbeam-channel = "0.5.15"
+bvh = "0.12.0"
 nalgebra.workspace = true
-rapier2d.workspace = true
-sge_api = { version = "0.1.0", path = "../sge_api" }
-sge_color.workspace = true
-sge_input.workspace = true
 sge_macros.workspace = true
 sge_math.workspace = true
 sge_time = { version = "0.1.0", path = "../sge_time" }

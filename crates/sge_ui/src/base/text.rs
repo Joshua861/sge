@@ -128,6 +128,25 @@ impl Text {
         )
     }
 
+    pub fn title_nowrap(text: impl ToString) -> UiRef {
+        Padding::tblr(
+            2.0,
+            10.0,
+            0.0,
+            0.0,
+            Center::horizontal(
+                Self {
+                    text: text.to_string(),
+                    font_size: 48,
+                    font: SANS_DISPLAY,
+                    wrap: false,
+                    ..Default::default()
+                }
+                .to_ref(),
+            ),
+        )
+    }
+
     pub fn h1_no_padding(text: impl ToString) -> UiRef {
         Self {
             text: text.to_string(),
@@ -265,14 +284,18 @@ impl UiNode for Text {
     }
 
     fn size(&self, area: Area) -> Vec2 {
-        measure_wrapped_text(
-            &self.text,
-            area.width(),
-            Some(self.font),
-            self.font_size,
-            self.do_dpi_scaling,
-            self.line_spacing,
-        )
+        if self.wrap {
+            measure_wrapped_text(
+                &self.text,
+                area.width(),
+                Some(self.font),
+                self.font_size,
+                self.do_dpi_scaling,
+                self.line_spacing,
+            )
+        } else {
+            self.preferred_dimensions()
+        }
     }
 
     fn draw(&self, area: super::Area, _: &UiState) -> Vec2 {

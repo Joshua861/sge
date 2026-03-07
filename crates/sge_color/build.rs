@@ -26,7 +26,6 @@ fn main() {
     let mut color_const_idents: Vec<proc_macro2::Ident> = Vec::new();
     let mut palette_const_idents: Vec<proc_macro2::Ident> = Vec::new();
 
-    // WHITE, BLACK, TRANSPARENT
     color_impl_items.extend(quote! {
         pub const WHITE: Self = Self::new(1.0, 1.0, 1.0);
         pub const BLACK: Self = Self::new(0.0, 0.0, 0.0);
@@ -73,29 +72,16 @@ fn main() {
                 #field_name: Color::#const_name,
             });
 
-            // Map entries: "COLOR_NAME_BRIGHTNESS" and normalized form
             let name_str = format!("{}_{}", color_name.to_uppercase(), brightness);
-            // normalized: strip underscores, replace "00" -> "", special-case 950->9.5, 50->0.5
+
             let norm = {
-                let base = format!("{}{}", color_name.to_uppercase(), brightness);
-                let base = base.replace("950", "95").replace("50", "05"); // temp placeholders
-                // Actually replicate original logic faithfully:
-                // original: replace("_","").replace("00","").replace("950","9.5").replace("50","0.5")
-                let s = format!("{}{}", color_name.to_uppercase(), brightness);
-                let s = s.replace("00", "");
-                let s = if s.ends_with("950") || s.contains("950") {
-                    s.replacen("950", "95", 1) // will handle below
-                } else {
-                    s
-                };
-                // Just do it simply:
                 let raw = format!(
                     "{}{}",
                     color_name.to_uppercase().replace("_", ""),
                     brightness
                 );
                 let raw = raw.replace("00", "");
-                // 950 -> "9.5", 50 -> "0.5" but only at end
+
                 if raw.ends_with("950") {
                     raw[..raw.len() - 3].to_string() + "9.5"
                 } else if raw.ends_with("50") && !raw.ends_with("950") {

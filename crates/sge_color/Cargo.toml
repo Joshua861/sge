@@ -8,7 +8,6 @@ edition = "2024"
 bevy_math = { workspace = true }
 egui_glium = { workspace = true }
 palette = { workspace = true }
-trig-const = { workspace = true }
 phf = { workspace = true }
 image = { workspace = true }
 
