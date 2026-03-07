@@ -4,7 +4,7 @@ use bevy_math::Vec2;
 use player::{Player, PlayerKey};
 use rapier2d::prelude::*;
 use sge_api::shapes_2d::{
-    draw_arrow_world, draw_circle, draw_circle_outline, draw_circle_outline_world,
+    draw_arrow, draw_arrow_world, draw_circle, draw_circle_outline, draw_circle_outline_world,
     draw_circle_world, draw_rect_outline, draw_rect_outline_world,
 };
 use sge_color::Color;
@@ -418,6 +418,35 @@ impl World {
                     draw_rect_outline(pos - size * 0.5, size, 1.0, Color::RED_500)
                 }
                 Bounds::Point => draw_circle(pos, 2.0, Color::RED_500),
+            }
+        }
+
+        for (a, infos) in &self.collisions {
+            let a = &self.objects[*a];
+            let pos = pos_from_rapier(self.rigid_body_set[a.rigid_body].position());
+
+            for info in infos {
+                let display_length = if info.points.depth > 0.0 {
+                    info.points.depth
+                } else {
+                    60.0
+                };
+                draw_arrow(
+                    pos,
+                    pos + info.points.normal * display_length,
+                    2.0,
+                    Color::NEUTRAL_500.with_alpha(0.3),
+                );
+            }
+
+            if !infos.is_empty() {
+                match a.bounds {
+                    Bounds::Circle(r) => draw_circle_outline(pos, r, Color::YELLOW_500, 3.0),
+                    Bounds::Rect(size) => {
+                        draw_rect_outline(pos - size * 0.5, size, 2.0, Color::YELLOW_500)
+                    }
+                    Bounds::Point => draw_circle(pos, 2.0, Color::YELLOW_500),
+                }
             }
         }
     }
