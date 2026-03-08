@@ -3,7 +3,7 @@ use proc_macro2::{Span, TokenStream as Ts2};
 use quote::quote;
 use syn::{Data, DeriveInput, Fields, LitStr, parse_macro_input};
 
-/// Derives automatic From<T> implementations for each variant of a tuple enum.
+/// Derives automatic `From<T>` implementations for each variant of a tuple enum.
 ///
 /// # Example
 /// ```
@@ -48,7 +48,7 @@ pub fn derive_union(tokens: TokenStream) -> TokenStream {
     from_impls.into()
 }
 
-/// Derives From<T>, Display, and Error trait implementations for an error enum.
+/// Derives `From<T>`, `Display`, and `Error` trait implementations for an error enum.
 ///
 /// # Example
 /// ```

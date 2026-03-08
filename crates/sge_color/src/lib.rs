@@ -60,6 +60,10 @@ impl Color {
         Self::new(v, v, v)
     }
 
+    pub fn grey(v: f32) -> Self {
+        Self::splat(v)
+    }
+
     pub const fn with_alpha(mut self, a: f32) -> Self {
         self.a = a;
         self

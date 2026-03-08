@@ -74,6 +74,7 @@ pub use sge_macros::{actions, bind};
 pub use sge_math::collision::{self, IntersectsWith};
 pub use sge_math::transform::{Transform2D, Transform3D};
 pub use sge_math::usize_rect::USizeRect;
+pub use sge_particles::*;
 pub use sge_physics::{
     Bounds, CollisionPoints, ObjectRef, World, WorldRef, player::PlayerBindBuilder,
     player::PlayerController,
@@ -126,6 +127,7 @@ pub use sge_types::{
     Vertex3D,
 };
 pub use sge_ui::{self as ui, base::EMPTY, draw_ui, draw_ui_in_area, draw_ui_unbounded, id};
+pub use sge_utils::RotatingArray;
 pub use sge_window::{
     SgeDisplay, WindowCreationError, WindowOptions, WindowState, dpi_scaling, get_display,
     get_display_mut, get_window_state, max_window_dimension, min_window_dimension, window_center,

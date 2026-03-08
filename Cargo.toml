@@ -107,6 +107,7 @@ sge_physics = { version = "0.1.0", path = "crates/sge_physics" }
 sge_text = { version = "0.1.0", path = "crates/sge_text" }
 sge_texture_atlas = { version = "0.1.0", path = "crates/sge_texture_atlas" }
 sge_utils = { version = "0.1.0", path = "crates/sge_utils" }
+sge_particles = { version = "0.1.0", path = "crates/sge_particles" }
 
 [profile.release]
 # Compile the entire crate as one unit.

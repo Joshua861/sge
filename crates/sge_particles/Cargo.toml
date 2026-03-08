@@ -4,6 +4,12 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+bevy_math.workspace = true
+bon.workspace = true
+dyn-clone = "1.0.20"
 sge_api = { version = "0.1.0", path = "../sge_api" }
+sge_color.workspace = true
+sge_rendering = { version = "0.1.0", path = "../sge_rendering" }
+sge_rng = { version = "0.1.0", path = "../sge_rng" }
 sge_shapes.workspace = true
 sge_time = { version = "0.1.0", path = "../sge_time" }

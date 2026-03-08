@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 bevy_math.workspace = true
+dyn-clone = "1.0.20"
 lyon.workspace = true
 paste.workspace = true
 sge_color.workspace = true

@@ -14,4 +14,5 @@ sge_input.workspace = true
 sge_macros.workspace = true
 sge_math.workspace = true
 sge_time = { version = "0.1.0", path = "../sge_time" }
+sge_utils = { version = "0.1.0", path = "../sge_utils" }
 slotmap = "1.1.1"

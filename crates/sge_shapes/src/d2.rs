@@ -1,15 +1,19 @@
 use bevy_math::{Mat3, Vec2, vec2};
+use dyn_clone::DynClone;
 use sge_color::Color;
 use sge_math::collision::{Aabb2d, HasBounds2D};
 use sge_types::Vertex2D;
 use std::f32::consts::TAU;
 
-pub trait Shape2D: HasBounds2D {
+pub trait Shape2D: HasBounds2D + DynClone {
     fn points(&self, starting_index: u32) -> (Vec<u32>, Vec<Vertex2D>);
     fn is_visible_in_world(&self) -> bool {
         self.bounds().is_visible_in_world()
     }
     fn set_rotation(&mut self, angle: f32);
+    fn set_color(&mut self, color: Color);
+    fn get_color(&self) -> Color;
+    fn set_pos(&mut self, pos: Vec2);
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -25,6 +29,18 @@ impl Shape2D for Circle {
     }
 
     fn set_rotation(&mut self, _: f32) {}
+
+    fn set_color(&mut self, color: Color) {
+        self.color = color;
+    }
+
+    fn get_color(&self) -> Color {
+        self.color
+    }
+
+    fn set_pos(&mut self, pos: Vec2) {
+        self.center = pos;
+    }
 }
 
 impl HasBounds2D for Circle {
@@ -41,6 +57,14 @@ impl Circle {
     pub fn from_top_left(top_left: Vec2, radius: Vec2, color: Color) -> Self {
         Self {
             center: top_left + radius,
+            radius,
+            color,
+        }
+    }
+
+    pub fn new(center: Vec2, radius: Vec2, color: Color) -> Self {
+        Self {
+            center,
             radius,
             color,
         }
@@ -68,8 +92,21 @@ impl Shape2D for CircleOutline {
     }
 
     fn set_rotation(&mut self, _: f32) {}
+
+    fn set_color(&mut self, color: Color) {
+        self.color = color;
+    }
+
+    fn get_color(&self) -> Color {
+        self.color
+    }
+
+    fn set_pos(&mut self, pos: Vec2) {
+        self.center = pos;
+    }
 }
 
+#[derive(Clone, Copy, Debug)]
 pub struct RoundedRectangle {
     pub top_left: Vec2,
     pub size: Vec2,
@@ -91,6 +128,19 @@ impl Shape2D for RoundedRectangle {
     }
 
     fn set_rotation(&mut self, _: f32) {}
+
+    fn set_color(&mut self, color: Color) {
+        self.fill_color = color;
+        self.outline_color = color;
+    }
+
+    fn get_color(&self) -> Color {
+        self.fill_color
+    }
+
+    fn set_pos(&mut self, pos: Vec2) {
+        self.top_left = pos;
+    }
 }
 
 impl RoundedRectangle {
@@ -213,6 +263,10 @@ impl Rect {
         Self::new(top_left, Vec2::splat(size), color)
     }
 
+    pub fn new_size(size: Vec2) -> Self {
+        Self::new(Vec2::ZERO, size, Color::WHITE)
+    }
+
     pub fn from_square_center(center: Vec2, size: f32, color: Color) -> Self {
         Self::from_center(center, Vec2::splat(size), color)
     }
@@ -253,6 +307,18 @@ impl Shape2D for Rect {
 
     fn set_rotation(&mut self, angle: f32) {
         self.rot = angle;
+    }
+
+    fn set_color(&mut self, color: Color) {
+        self.color = color;
+    }
+
+    fn get_color(&self) -> Color {
+        self.color
+    }
+
+    fn set_pos(&mut self, pos: Vec2) {
+        self.top_left = pos;
     }
 }
 
@@ -313,6 +379,22 @@ impl Shape2D for Triangle {
 
     fn set_rotation(&mut self, angle: f32) {
         self.rot = angle;
+    }
+
+    fn set_color(&mut self, color: Color) {
+        self.color = color;
+    }
+
+    fn get_color(&self) -> Color {
+        self.color
+    }
+
+    fn set_pos(&mut self, pos: Vec2) {
+        let center = self.center();
+        let offset = pos - center;
+        for point in &mut self.points {
+            *point += offset;
+        }
     }
 }
 
@@ -413,6 +495,21 @@ impl Shape2D for Line2D {
     fn set_rotation(&mut self, angle: f32) {
         self.rot = angle;
     }
+
+    fn set_color(&mut self, color: Color) {
+        self.color = color;
+    }
+
+    fn get_color(&self) -> Color {
+        self.color
+    }
+
+    fn set_pos(&mut self, pos: Vec2) {
+        let center = self.center();
+        let offset = pos - center;
+        self.start += offset;
+        self.end += offset;
+    }
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -461,6 +558,18 @@ impl Shape2D for Poly {
     fn set_rotation(&mut self, angle: f32) {
         self.rotation = angle;
     }
+
+    fn set_color(&mut self, color: Color) {
+        self.color = color;
+    }
+
+    fn get_color(&self) -> Color {
+        self.color
+    }
+
+    fn set_pos(&mut self, pos: Vec2) {
+        self.center = pos;
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -496,6 +605,23 @@ impl Shape2D for CustomShape {
 
     fn set_rotation(&mut self, _: f32) {
         unimplemented!()
+    }
+
+    fn set_color(&mut self, color: Color) {
+        self.color = color;
+    }
+
+    fn get_color(&self) -> Color {
+        self.color
+    }
+
+    fn set_pos(&mut self, pos: Vec2) {
+        let bounds = self.bounds();
+        let center = (bounds.min + bounds.max) / 2.0;
+        let offset = pos - center;
+        for point in &mut self.points {
+            *point += offset;
+        }
     }
 }
 

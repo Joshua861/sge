@@ -1,3 +1,5 @@
+use std::f32::consts::FRAC_PI_2;
+
 use sge::prelude::*;
 
 const PLAYER_RADIUS: f32 = 30.0;
@@ -15,7 +17,7 @@ fn main() -> anyhow::Result<()> {
     let mut player = Player {
         color: Color::RED_500,
         controller: world
-            .create_player_controller(Bounds::Circle(PLAYER_RADIUS))
+            .create_player_controller(Bounds::Rect(Vec2::splat(PLAYER_RADIUS * 2.0)))
             .with_position(Vec2::new(0.0, -200.0)),
     };
 
@@ -49,10 +51,55 @@ fn main() -> anyhow::Result<()> {
             .with_position(p.center());
     }
 
+    let mut ps = ParticleSystem::new();
+
+    let jump_particles = ParticleBatch::builder()
+        .shape(Rect::new_square(
+            Vec2::ZERO,
+            10.0,
+            Color::WHITE.with_alpha(0.3),
+        ))
+        .color_randomness(Color::BLACK.with_alpha(0.1))
+        .end_color(Color::WHITE.with_alpha(0.0))
+        .speed(5.0)
+        .direction(FRAC_PI_2)
+        .direction_randomness(FRAC_PI_2)
+        .speed_randomness(3.0)
+        .lifetime_randomness(0.5)
+        .rotation_speed_randomness(0.2)
+        .lifetime(1.0)
+        .build();
+
+    let land_particles = ParticleBatch::builder()
+        .shape(Rect::new_square(
+            Vec2::ZERO,
+            10.0,
+            Color::WHITE.with_alpha(0.1),
+        ))
+        .color_randomness(Color::BLACK.with_alpha(0.1))
+        .end_color(Color::WHITE.with_alpha(0.0))
+        .speed(5.0)
+        .direction(-FRAC_PI_2)
+        .direction_randomness(FRAC_PI_2)
+        .acceleration(vec2(0.0, 0.2))
+        .speed_randomness(3.0)
+        .rotation_speed_randomness(0.2)
+        .quantity(5)
+        .quantity_randomness(2.0)
+        .lifetime_randomness(0.5)
+        .lifetime(0.5)
+        .build();
+
     let mut debug_mode = false;
 
     loop {
+        ps.update();
         clear_screen(Color::NEUTRAL_900);
+        draw_multiline_text(
+            "Press D to toggle debug mode\nSpace to jump\nA to move right\nF to move left",
+            Vec2::splat(10.0),
+            1.0,
+        );
 
         if key_pressed(KeyCode::KeyD) {
             debug_mode = !debug_mode;
@@ -66,8 +113,24 @@ fn main() -> anyhow::Result<()> {
             world.draw_colliders_world();
         }
 
-        if player.controller.position().y > 1000.0 {
-            player.controller.add_impulse(Vec2::Y * 15.0);
+        if player.controller.position().y > 1000.0
+            && player.controller.velocity().y.is_sign_negative()
+        {
+            player.controller.add_impulse(Vec2::Y * 30.0);
+        }
+
+        if player.controller.just_double_jumped() {
+            ps.spawn_batch(
+                &jump_particles,
+                player.controller.position() + vec2(0.0, PLAYER_RADIUS),
+            );
+        }
+
+        if player.controller.just_landed() {
+            ps.spawn_batch(
+                &land_particles,
+                player.controller.position() + vec2(0.0, PLAYER_RADIUS),
+            );
         }
 
         {
@@ -107,6 +170,8 @@ fn main() -> anyhow::Result<()> {
             for p in &platforms {
                 draw_world(*p);
             }
+
+            ps.draw_world();
         }
 
         world.update();
