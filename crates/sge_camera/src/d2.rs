@@ -12,7 +12,7 @@ pub struct Camera2D {
     window_size: Vec2,
 
     view_matrix: Mat3,
-    inverse_view_matrix: Mat3,
+    pub(crate) inverse_view_matrix: Mat3,
     projection_matrix: Mat4,
     needs_update: bool,
     visible_bounds: (Vec2, Vec2),

@@ -338,6 +338,13 @@ impl WinitInputHelper {
         }
     }
 
+    pub fn cursor_prev(&self) -> Option<(f32, f32)> {
+        match &self.current {
+            Some(current) => current.cursor_point_prev,
+            None => None,
+        }
+    }
+
     /// Returns the change in cursor coordinates that occured during the last step, when window is focused AND (cursor is on window OR any mouse button remains held while cursor moved off window)
     /// Otherwise returns `(0.0, 0.0)`.
     pub fn cursor_diff(&self) -> (f32, f32) {

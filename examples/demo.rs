@@ -60,7 +60,7 @@ fn main() -> anyhow::Result<()> {
         draw_hexagon_pointy(
             Vec2::new(1000.0, 200.0),
             100.0 * 3.0_f32.sqrt(),
-            Color::BLUE_200,
+            Color::BLUE_400,
         );
 
         draw_square_world(Vec2::splat(-50.0), 100.0, Color::PINK_400);
@@ -80,7 +80,6 @@ fn main() -> anyhow::Result<()> {
         }
 
         let cursor_pos = last_cursor_pos();
-        draw_circle(cursor_pos, 10.0, Color::YELLOW_500);
         for y in 0..100 {
             for x in 0..100 {
                 let x = x as f32 * 100.0;
@@ -101,7 +100,7 @@ fn main() -> anyhow::Result<()> {
                 if is_hovered {
                     use ui::prelude::*;
                     let ui = Fit::new(Fill::new(
-                        Color::NEUTRAL_700,
+                        Color::NEUTRAL_900,
                         Padding::all(
                             20.0,
                             Col::new([

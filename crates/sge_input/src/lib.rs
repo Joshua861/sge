@@ -357,6 +357,10 @@ pub fn cursor() -> Option<Vec2> {
     get_input().cursor().map(|c| vec2(c.0, c.1))
 }
 
+pub fn cursor_prev() -> Option<Vec2> {
+    get_input().cursor_prev().map(|c| vec2(c.0, c.1))
+}
+
 /// Returns the change in cursor coordinates that occurred during the last step,
 /// when window is focused AND (cursor is on window OR any mouse button remains held
 /// while cursor moved off window). Otherwise returns (0.0, 0.0).

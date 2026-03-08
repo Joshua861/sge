@@ -103,6 +103,7 @@ macro_rules! define_draw_functions {
 define_draw_functions!(
     draw_rect: top_left: Vec2, size: Vec2, color: Color => Rect { top_left, size, color, rot: 0.0, },
     draw_rect_rotation: top_left: Vec2, size: Vec2, color: Color, rot: f32 => Rect { top_left, size, color, rot },
+    draw_square: top_left: Vec2, size: f32, color: Color => Rect { top_left, size: Vec2::splat(size), color, rot: 0.0 },
     draw_square_rotation: top_left: Vec2, size: f32, color: Color, rot: f32 => Rect { top_left, size: Vec2::splat(size), color, rot },
     draw_tri: a: Vec2, b: Vec2, c: Vec2, color: Color => Triangle { points: [a, b, c], color, rot: 0.0 },
     draw_tri_rotation: a: Vec2, b: Vec2, c: Vec2, color: Color, rot: f32 => Triangle { points: [a, b, c], color, rot },
