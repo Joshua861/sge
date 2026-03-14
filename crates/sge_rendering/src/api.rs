@@ -159,7 +159,6 @@ pub fn draw_fullscreen_texture(texture: TextureRef) {
 }
 
 pub fn freeze_z_index() {
-    current_render_pipeline().world_draw_queue_2d().current_z += 0.001;
     current_render_pipeline().draw_queue_2d().z_increment = 0.0;
 }
 
@@ -169,7 +168,6 @@ pub fn reset_z_index() {
 }
 
 pub fn freeze_z_index_world() {
-    current_render_pipeline().world_draw_queue_2d().current_z += 0.001;
     current_render_pipeline().world_draw_queue_2d().z_increment = 0.0;
 }
 

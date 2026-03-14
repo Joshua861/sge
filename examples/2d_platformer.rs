@@ -99,8 +99,16 @@ fn main() -> anyhow::Result<()> {
     loop {
         ps.update();
         camera_controller.update();
-        clear_screen(Color::NEUTRAL_900);
-        vignette_screen(Color::NEUTRAL_950, 0.5);
+
+        if !debug_mode {
+            clear_screen(Color::NEUTRAL_900);
+            vignette_screen(Color::NEUTRAL_950, 0.5);
+
+            run_egui(|ui| {
+                draw_debug_info(ui);
+            });
+        }
+
         draw_multiline_text(
             "Press D to toggle debug mode\nSpace to jump\nA to move right\nF to move left",
             Vec2::splat(10.0),

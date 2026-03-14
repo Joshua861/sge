@@ -16,6 +16,7 @@ pub mod grid;
 
 pub fn draw_debug_info(ui: &egui_glium::egui_winit::egui::Context) {
     let debug = get_debug_info();
+    let current_frame = debug.previous_frame();
 
     let vertex_points: PlotPoints = (0..FRAME_BACKLOG)
         .map(|i| {
@@ -62,44 +63,51 @@ pub fn draw_debug_info(ui: &egui_glium::egui_winit::egui::Context) {
     let z_index_line = Line::new(z_index_points);
 
     Window::new("Debug info").show(ui, |ui| {
-        for (id, max, label, line) in [
+        for (id, max, label, line, current) in [
             (
                 "vertex_plot",
                 debug.max.vertex_count,
                 "Vertex count",
                 vertex_line,
+                current_frame.vertex_count as f32,
             ),
             (
                 "index_plot",
                 debug.max.index_count,
                 "Indice count",
                 index_line,
+                current_frame.index_count as f32,
             ),
             (
                 "draw_plot",
                 debug.max.draw_calls,
                 "Draw call count",
                 draw_call_line,
+                current_frame.draw_calls as f32,
             ),
             (
                 "object_plot",
                 debug.max.drawn_objects,
                 "Drawn object count",
                 drawn_object_line,
+                current_frame.drawn_objects as f32,
             ),
             (
                 "engine_time_plot",
                 debug.max.engine_time.ceil() as usize,
                 "Engine time (ms)",
                 engine_time_line,
+                current_frame.engine_time as f32,
             ),
             (
                 "z_index_plot",
                 debug.max.z_index.ceil() as usize,
                 "Max z index",
                 z_index_line,
+                current_frame.z_index,
             ),
         ] {
+            ui.label(format!("{}: {}", label, current));
             Plot::new(id)
                 .height(100.0)
                 .include_y(max as f64 * 1.5)
