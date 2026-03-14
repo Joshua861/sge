@@ -127,6 +127,12 @@ pub fn once_per_n_seconds(n: f32) -> bool {
     (state.time / n) as usize != ((state.time - state.delta_time) / n) as usize
 }
 
+pub fn toggle_every_n_seconds(n: f32) -> bool {
+    let state = get_time_state();
+
+    (state.time % n * 2.0) / n <= 1.0
+}
+
 pub fn delta_time() -> f32 {
     get_time_state().delta_time
 }

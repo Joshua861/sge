@@ -7,6 +7,15 @@
  colors and a bit of refactoring.
   - [X] draw queue with consecutive poly and circle draw calls grouped together so
     that they can be batch drawn together. use instancing for grouped circles
+- [ ] toggle using positive y up
+- [ ] macro based wrappers around structs for persistent (fs) storage and network sync
+- [ ] measure startup and runtime performance
+  - [ ] make sure things arent using up performance when the user isnt even using
+       that part of the engine
+- [ ] revamp should add tests
+- [ ] make API consistent
+- [ ] outline on shape trait with rotation and everything
+- [ ] macro as much as possible based on traits
 - [X] poly circles as new function / optional
 - [X] cache projection matrix
 - [X] cull off screen world draws
@@ -33,8 +42,9 @@
 - [ ] include folder should convert meshes objects (maybe some way of including materials) and textures and tile maps/ scenes when we get there and sounds when we get there
 - [ ] allow user to use all collision shapes supported by rapier2d
 - [ ] just put the scissor and culling on row/col. problem solved
-- [ ] maybe create a raw row/col that works as it does currently
-- [ ] camera shake controller. there's no reason you couldn't use this with another camera controller, but we may want to just create a master camera controller for 2D and 3D
+  - yeah no
+  - [ ] maybe create a raw row/col that works as it does currently
+- [X] camera shake controller. there's no reason you couldn't use this with another camera controller, but we may want to just create a master camera controller for 2D and 3D
 - [ ] 3d physics
 - [ ] 3d FPS controller and camera
 - [ ] pannini can just be a post processing effect
@@ -365,3 +375,157 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
   - [X] add mirror BVec3 to transform3d
   - [ ] LOD
 - [ ] include_(texture|object|model|sound) macros (macro crate)
+
+* Make everything good
+- [X] error_union/lib.rs
+- [X] gilrs_input_helper/gamepad_state.rs
+- [X] gilrs_input_helper/lib.rs
+- [X] global/lib.rs
+- [X] include_folder/include_folder_macros/lib.rs
+- [X] include_folder/include_folder_shared/globbing.rs
+- [X] include_folder/include_folder_shared/lib.rs
+- [X] include_folder/lib.rs
+- [X] include_folder/main.rs
+- [X] include_folder/test.rs
+- [X] include_folder_2/macros/lib.rs
+- [X] include_folder_2/macros/main.rs
+- [X] sge_animation/lib.rs
+- [X] sge_api/area.rs
+- [X] sge_api/lib.rs
+- [X] sge_api/shapes_2d.rs
+- [ ] sge_audio/lib.rs
+- [ ] sge_camera/controllers/mod.rs
+- [ ] sge_camera/controllers/orbit.rs
+- [ ] sge_camera/controllers/pan.rs
+- [ ] sge_camera/controllers/shake.rs
+- [ ] sge_camera/d2.rs
+- [ ] sge_camera/d3.rs
+- [ ] sge_camera/lib.rs
+- [ ] sge_color/build.rs
+- [ ] sge_color/colors.json
+- [ ] sge_color/lib.rs
+- [ ] sge_color/schemes.rs
+- [ ] sge_color/tests.rs
+- [ ] sge_color/u8.rs
+- [ ] sge_config/lib.rs
+- [ ] sge_debug_visualisations/grid.rs
+- [ ] sge_debug_visualisations/lib.rs
+- [ ] sge_debugging/implementation.rs
+- [ ] sge_debugging/lib.rs
+- [ ] sge_egui/lib.rs
+- [ ] sge_image/lib.rs
+- [ ] sge_image/rendering.rs
+- [ ] sge_input/keys.rs
+- [ ] sge_input/lib.rs
+- [ ] sge_logging/lib.rs
+- [ ] sge_macros/lib.rs
+- [ ] sge_math/collision/mod.rs
+- [ ] sge_math/collision/ray.rs
+- [ ] sge_math/lib.rs
+- [ ] sge_math/transform/d2.rs
+- [ ] sge_math/transform/d3.rs
+- [ ] sge_math/transform/mod.rs
+- [ ] sge_math/usize_rect.rs
+- [ ] sge_particles/lib.rs
+- [ ] sge_physics/lib.rs
+- [ ] sge_physics/player.rs
+- [ ] sge_programs/shaders/blinn_phong/fragment.glsl
+- [ ] sge_programs/shaders/blinn_phong/vertex.glsl
+- [ ] sge_programs/shaders/circle/fragment.glsl
+- [ ] sge_programs/shaders/circle/vertex.glsl
+- [ ] sge_programs/shaders/copy/fragment.glsl
+- [ ] sge_programs/shaders/copy/vertex.glsl
+- [ ] sge_programs/shaders/flat/fragment.glsl
+- [ ] sge_programs/shaders/flat/vertex.glsl
+- [ ] sge_programs/shaders/flat_3d/fragment.glsl
+- [ ] sge_programs/shaders/flat_3d/vertex.glsl
+- [ ] sge_programs/shaders/gourad/fragment.glsl
+- [ ] sge_programs/shaders/gourad/vertex.glsl
+- [ ] sge_programs/shaders/grid/fragment.glsl
+- [ ] sge_programs/shaders/grid/vertex.glsl
+- [ ] sge_programs/shaders/radial/fragment.glsl
+- [ ] sge_programs/shaders/radial/vertex.glsl
+- [ ] sge_programs/shaders/rounded/fragment.glsl
+- [ ] sge_programs/shaders/rounded/vertex.glsl
+- [ ] sge_programs/shaders/sprite/fragment.glsl
+- [ ] sge_programs/shaders/sprite/vertex.glsl
+- [ ] sge_programs/shaders/test/fragment.glsl
+- [ ] sge_programs/shaders/test/vertex.glsl
+- [ ] sge_programs/shaders/textured/fragment.glsl
+- [ ] sge_programs/shaders/textured/vertex.glsl
+- [ ] sge_programs/lib.rs
+- [ ] sge_rendering/api.rs
+- [ ] sge_rendering/d2.rs
+- [ ] sge_rendering/d3.rs
+- [ ] sge_rendering/lib.rs
+- [ ] sge_rendering/materials.rs
+- [ ] sge_rendering/object_3d.rs
+- [ ] sge_rendering/pipeline.rs
+- [ ] sge_rendering/post_processing.rs
+- [ ] sge_rendering/scissor.rs
+- [ ] sge_rendering/shapes_3d.rs
+- [ ] sge_rng/lib.rs
+- [ ] sge_shapes/d2.rs
+- [ ] sge_shapes/lib.rs
+- [ ] sge_text/icons.rs
+- [ ] sge_text/lib.rs
+- [ ] sge_text/rich_text.rs
+- [ ] sge_text/wrapped_text.rs
+- [ ] sge_texture_atlas/lib.rs
+- [ ] sge_textures/lib.rs
+- [ ] sge_time/lib.rs
+- [ ] sge_types/aabb.rs
+- [ ] sge_types/area.rs
+- [ ] sge_types/lib.rs
+- [ ] sge_types/rendering.rs
+- [ ] sge_types/vertex.rs
+- [ ] sge_ui/base/active_fill.rs
+- [ ] sge_ui/base/align.rs
+- [ ] sge_ui/base/aspect_ratio.rs
+- [ ] sge_ui/base/border.rs
+- [ ] sge_ui/base/box_fill.rs
+- [ ] sge_ui/base/button.rs
+- [ ] sge_ui/base/center.rs
+- [ ] sge_ui/base/circle.rs
+- [ ] sge_ui/base/col.rs
+- [ ] sge_ui/base/empty.rs
+- [ ] sge_ui/base/fill.rs
+- [ ] sge_ui/base/fit.rs
+- [ ] sge_ui/base/flex.rs
+- [ ] sge_ui/base/gradient_fill.rs
+- [ ] sge_ui/base/grid.rs
+- [ ] sge_ui/base/hoverable.rs
+- [ ] sge_ui/base/image.rs
+- [ ] sge_ui/base/input.rs
+- [ ] sge_ui/base/loading_bar.rs
+- [ ] sge_ui/base/mod.rs
+- [ ] sge_ui/base/padding.rs
+- [ ] sge_ui/base/progress_bar.rs
+- [ ] sge_ui/base/rounded_fill.rs
+- [ ] sge_ui/base/row.rs
+- [ ] sge_ui/base/scissor_box.rs
+- [ ] sge_ui/base/scroll.rs
+- [ ] sge_ui/base/sized_box.rs
+- [ ] sge_ui/base/stack.rs
+- [ ] sge_ui/base/text.rs
+- [ ] sge_ui/lib.rs
+- [ ] sge_ui/library/flat/button.rs
+- [ ] sge_ui/library/flat/card.rs
+- [ ] sge_ui/library/flat/loading_bar.rs
+- [ ] sge_ui/library/flat/mod.rs
+- [ ] sge_ui/library/flat/progress_bar.rs
+- [ ] sge_ui/library/mod.rs
+- [ ] sge_ui/library/w95/button.rs
+- [ ] sge_ui/library/w95/card.rs
+- [ ] sge_ui/library/w95/mod.rs
+- [ ] sge_ui/library/w95/progress_bar.rs
+- [ ] sge_utils/lib.rs
+- [ ] sge_window/lib.rs
+- [ ] si/si_macros/lib.rs
+- [ ] si/lib.rs
+- [ ] winit_input_helper/current_input.rs
+- [ ] winit_input_helper/lib.rs
+- [ ] winit_input_helper/winit_input_helper.rs
+- [ ] src/api.rs
+- [ ] src/lib.rs
+- [ ] src/user_storage.rs

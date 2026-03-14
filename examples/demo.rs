@@ -11,16 +11,13 @@ fn main() -> anyhow::Result<()> {
 
     let mut is_dark_mode = false;
     let mut camera_controller = PanningCameraController::new();
-    let guy_texture = load_texture(
-        include_bytes!("../assets/textures/guy.jpg"),
-        ImageFormat::Jpeg,
-    )?;
+    let mut screenshake = CameraShakeController::new(50.0, 16.0, 2.0);
+    let guy_texture = include_texture!("../assets/textures/guy.jpg");
     let mut show_debug_info = false;
 
     loop {
-        println!("{}", get_drawn_objects());
-
         camera_controller.update();
+        screenshake.update();
 
         if key_pressed(KeyCode::Space) {
             is_dark_mode = !is_dark_mode;
@@ -155,6 +152,10 @@ fn main() -> anyhow::Result<()> {
 
                 if ui.button("Click me!").clicked() {
                     is_dark_mode = !is_dark_mode;
+                }
+
+                if ui.button("Shake screen").clicked() {
+                    screenshake.add_trauma(1.0);
                 }
             });
         });

@@ -179,18 +179,13 @@ impl UiNode for Scroll {
 
         let mut measure_area = area;
         measure_area.size.y = f32::INFINITY;
-        let child_dimensions = self.child.node.size(measure_area);
-        let max_offset = (child_dimensions.y - area.height()).max(0.0);
-
-        if input.is_cursor_within_area(area) {
-            let diff = -input.scroll_diff().1 * self.scroll_speed;
-            state.desired_offset = (state.desired_offset + diff).clamp(0.0, max_offset);
-        }
+        self.child.node.size(measure_area);
 
         push_scissor(area.to_rect());
 
         let mut draw_area = area;
         draw_area.top_left.y -= state.offset;
+        draw_area.size.y = f32::INFINITY;
 
         let dimensions = self.child.node.draw(draw_area, ui);
 
@@ -200,11 +195,22 @@ impl UiNode for Scroll {
             self.draw_scrollbar(area, state, dimensions);
         }
 
+        let max_offset = (dimensions.y - area.height()).max(0.0);
+
+        if input.is_cursor_within_area(area) {
+            let diff = -input.scroll_diff().1 * self.scroll_speed;
+            state.desired_offset = (state.desired_offset + diff).clamp(0.0, max_offset);
+        }
+
         area.size()
     }
 
     fn preferred_dimensions(&self) -> Vec2 {
         self.child.node.preferred_dimensions()
+    }
+
+    fn size(&self, area: Area) -> Vec2 {
+        self.child.node.size(area)
     }
 }
 

@@ -1,5 +1,6 @@
 use bevy_math::Vec2;
 use sge_color::Color;
+use sge_macros::draw_shape_variants;
 use sge_math::collision::{self, HasBounds2D, Polygon};
 use sge_rendering::{
     d2::DrawQueue2D,
@@ -7,6 +8,8 @@ use sge_rendering::{
 };
 use sge_shapes::d2::*;
 use sge_types::Vertex2D;
+
+use crate::{draw, draw_world};
 
 pub trait Shape2DExt: Shape2D {
     fn add_to_draw_queue(&self, draw_queue: &mut DrawQueue2D);
@@ -18,49 +21,184 @@ pub trait Shape2DExt: Shape2D {
             self.add_to_draw_queue(world_draw_queue_2d())
         }
     }
+    fn draw_outline_to_draw_queue(
+        &self,
+        draw_queue: &mut DrawQueue2D,
+        thickness: f32,
+        color: Color,
+    );
+    fn draw_with_outline_to_draw_queue(
+        &self,
+        draw_queue: &mut DrawQueue2D,
+        thickness: f32,
+        color: Color,
+    ) {
+        self.add_to_draw_queue(draw_queue);
+        self.draw_outline_to_draw_queue(draw_queue, thickness, color);
+    }
 }
 
 impl Shape2DExt for Circle {
     fn add_to_draw_queue(&self, draw_queue: &mut DrawQueue2D) {
         draw_queue.add_circle(self.center, self.radius, self.color);
     }
+
+    fn draw_outline_to_draw_queue(
+        &self,
+        draw_queue: &mut DrawQueue2D,
+        thickness: f32,
+        color: Color,
+    ) {
+        draw_queue.add_circle_with_outline(
+            self.center,
+            self.radius,
+            Color::TRANSPARENT,
+            thickness,
+            color,
+        );
+    }
+
+    fn draw_with_outline_to_draw_queue(
+        &self,
+        draw_queue: &mut DrawQueue2D,
+        thickness: f32,
+        color: Color,
+    ) {
+        draw_queue.add_circle_with_outline(self.center, self.radius, self.color, thickness, color);
+    }
 }
-impl Shape2DExt for CircleOutline {
+
+impl Shape2DExt for CircleWithOutline {
     fn add_to_draw_queue(&self, draw_queue: &mut DrawQueue2D) {
         draw_queue.add_circle_with_outline(
             self.center,
             self.radius,
             Color::new(0.0, 0.0, 0.0).with_alpha(0.0),
-            self.thickness,
-            self.color,
+            self.outline_thickness,
+            self.outline_color,
+        );
+    }
+
+    fn draw_outline_to_draw_queue(
+        &self,
+        draw_queue: &mut DrawQueue2D,
+        _thickness: f32,
+        _color: Color,
+    ) {
+        draw_queue.add_circle_with_outline(
+            self.center,
+            self.radius,
+            Color::TRANSPARENT,
+            self.outline_thickness,
+            self.outline_color,
+        );
+    }
+
+    fn draw_with_outline_to_draw_queue(
+        &self,
+        draw_queue: &mut DrawQueue2D,
+        thickness: f32,
+        color: Color,
+    ) {
+        draw_queue.add_circle_with_outline(
+            self.center,
+            self.radius,
+            self.fill_color,
+            self.outline_thickness,
+            self.outline_color,
         );
     }
 }
+
 impl Shape2DExt for Rect {
     fn add_to_draw_queue(&self, draw_queue: &mut DrawQueue2D) {
         draw_queue.add_shape(self);
     }
+
+    fn draw_outline_to_draw_queue(
+        &self,
+        draw_queue: &mut DrawQueue2D,
+        thickness: f32,
+        color: Color,
+    ) {
+        let points = self.points();
+        draw_square_outline_path(&points, color, thickness, draw_queue);
+    }
+
+    fn draw_with_outline_to_draw_queue(
+        &self,
+        draw_queue: &mut DrawQueue2D,
+        thickness: f32,
+        color: Color,
+    ) {
+        self.add_to_draw_queue(draw_queue);
+        self.draw_outline_to_draw_queue(draw_queue, thickness, color);
+    }
 }
+
 impl Shape2DExt for Triangle {
     fn add_to_draw_queue(&self, draw_queue: &mut DrawQueue2D) {
         draw_queue.add_shape(self);
     }
+
+    fn draw_outline_to_draw_queue(
+        &self,
+        draw_queue: &mut DrawQueue2D,
+        thickness: f32,
+        color: Color,
+    ) {
+        let points = self.points();
+        draw_circle_outline_path(&points, thickness, color, draw_queue);
+    }
 }
+
 impl Shape2DExt for Line2D {
     fn add_to_draw_queue(&self, draw_queue: &mut DrawQueue2D) {
         draw_queue.add_shape(self);
     }
+
+    fn draw_outline_to_draw_queue(
+        &self,
+        draw_queue: &mut DrawQueue2D,
+        thickness: f32,
+        color: Color,
+    ) {
+        unimplemented!()
+    }
 }
+
 impl Shape2DExt for Poly {
     fn add_to_draw_queue(&self, draw_queue: &mut DrawQueue2D) {
         draw_queue.add_shape(self);
     }
+
+    fn draw_outline_to_draw_queue(
+        &self,
+        draw_queue: &mut DrawQueue2D,
+        thickness: f32,
+        color: Color,
+    ) {
+        let points = self.gen_points();
+        draw_circle_outline_path(&points, thickness, color, draw_queue);
+    }
 }
+
 impl Shape2DExt for CustomShape {
     fn add_to_draw_queue(&self, draw_queue: &mut DrawQueue2D) {
         draw_queue.add_shape(self);
     }
+
+    fn draw_outline_to_draw_queue(
+        &self,
+        draw_queue: &mut DrawQueue2D,
+        thickness: f32,
+        color: Color,
+    ) {
+        let points = &self.points;
+        draw_circle_outline_path(points, thickness, color, draw_queue);
+    }
 }
+
 impl Shape2DExt for RoundedRectangle {
     fn add_to_draw_queue(&self, draw_queue: &mut DrawQueue2D) {
         draw_queue.add_rounded_rectangle(
@@ -71,6 +209,61 @@ impl Shape2DExt for RoundedRectangle {
             self.outline_thickness,
             self.outline_color,
         );
+    }
+
+    fn draw_outline_to_draw_queue(
+        &self,
+        draw_queue: &mut DrawQueue2D,
+        thickness: f32,
+        color: Color,
+    ) {
+        draw_queue.add_rounded_rectangle(
+            self.center(),
+            self.size,
+            self.corner_radius,
+            Color::TRANSPARENT,
+            thickness,
+            color,
+        );
+    }
+
+    fn draw_with_outline_to_draw_queue(
+        &self,
+        draw_queue: &mut DrawQueue2D,
+        thickness: f32,
+        color: Color,
+    ) {
+        draw_queue.add_rounded_rectangle(
+            self.center(),
+            self.size,
+            self.corner_radius,
+            self.fill_color,
+            thickness,
+            color,
+        );
+    }
+}
+
+impl Shape2DExt for RadialGradient {
+    fn add_to_draw_queue(&self, draw_queue: &mut DrawQueue2D) {
+        draw_queue.add_radial_gradient(
+            self.center,
+            self.radius,
+            self.inner_color,
+            self.outer_color,
+            self.outline_thickness,
+            self.outline_color,
+            self.gradient_offset,
+        );
+    }
+
+    fn draw_outline_to_draw_queue(
+        &self,
+        _draw_queue: &mut DrawQueue2D,
+        _thickness: f32,
+        _color: Color,
+    ) {
+        unimplemented!()
     }
 }
 
@@ -115,64 +308,54 @@ macro_rules! draw_variants {
     };
 }
 
-macro_rules! draw_shape_variants {
-    (
-        $( $name:ident : $($param:ident : $ptype:ty),* => $constructor:expr ),* $(,)?
-    ) => {
-        $(
-            paste::paste! {
-                pub fn [<draw_ $name>]($($param: $ptype),*) {
-                    draw_shape(&$constructor);
-                }
-                pub fn [<draw_ $name _world>]($($param: $ptype),*) {
-                    draw_shape_world(&$constructor);
-                }
-                pub fn [<draw_ $name _to>]($($param: $ptype,)* world: bool) {
-                    if world { [<draw_ $name _world>]($($param),*) }
-                    else     { [<draw_ $name>]($($param),*) }
-                }
-            }
-        )*
-    };
-}
-
-#[rustfmt::skip]
 draw_shape_variants! {
-    rect:              top_left: Vec2, size: Vec2, color: Color
-        => Rect { top_left, size, color, rot: 0.0 },
+    // ---- filled primitives with rotation + outline -------------------------
 
-    rect_rotation:     top_left: Vec2, size: Vec2, color: Color, rot: f32
+    rect [rotation, outline, with_outline]:
+        top_left: Vec2, size: Vec2, color: Color
         => Rect { top_left, size, color, rot },
 
-    square:            top_left: Vec2, size: f32, color: Color
-        => Rect { top_left, size: Vec2::splat(size), color, rot: 0.0 },
-
-    square_rotation:   top_left: Vec2, size: f32, color: Color, rot: f32
+    square [rotation, outline, with_outline]:
+        top_left: Vec2, size: f32, color: Color
         => Rect { top_left, size: Vec2::splat(size), color, rot },
 
-    tri:               a: Vec2, b: Vec2, c: Vec2, color: Color
-        => Triangle { points: [a, b, c], color, rot: 0.0 },
-
-    tri_rotation:      a: Vec2, b: Vec2, c: Vec2, color: Color, rot: f32
+    tri [rotation, outline, with_outline]:
+        a: Vec2, b: Vec2, c: Vec2, color: Color
         => Triangle { points: [a, b, c], color, rot },
 
-    line:              start: Vec2, end: Vec2, thickness: f32, color: Color
-        => Line2D { start, end, thickness, color, rot: 0.0 },
+    // ---- line: no outline (draw_outline_to_draw_queue is unimplemented) ----
 
-    line_rotation:     start: Vec2, end: Vec2, thickness: f32, color: Color, rot: f32
+    line [rotation]:
+        start: Vec2, end: Vec2, thickness: f32, color: Color
         => Line2D { start, end, thickness, color, rot },
 
-    poly:              center: Vec2, sides: usize, radius: f32, rotation: f32, color: Color
+    // ---- poly-based shapes: outline makes sense, rotation via `rotation` field
+
+    poly [outline, with_outline]:
+        center: Vec2, sides: usize, radius: f32, rotation: f32, color: Color
         => Poly { center, sides, radius, rotation, color },
 
-    custom_shape:      points: Vec<Vec2>, color: Color
+    custom_shape [outline, with_outline]:
+        points: Vec<Vec2>, color: Color
         => CustomShape { points, color },
 
-    hexagon:           center: Vec2, radius: f32, color: Color
+    hexagon [outline, with_outline]:
+        center: Vec2, radius: f32, color: Color
         => Poly { center, sides: 6, radius, rotation: 0.0, color },
 
-    hexagon_pointy:    center: Vec2, radius: f32, color: Color
+    hexagon_pointy [outline, with_outline]:
+        center: Vec2, radius: f32, color: Color
         => Poly { center, sides: 6, radius, rotation: std::f32::consts::FRAC_PI_6, color },
+
+    // ---- radial gradient: outline is unimplemented -------------------------
+
+    radial_gradient []:
+        center: Vec2, radius: Vec2, inner_color: Color, outer_color: Color,
+        outline_thickness: f32, outline_color: Color, gradient_offset: Vec2
+        => RadialGradient {
+            center, radius, inner_color, outer_color,
+            outline_thickness, outline_color, gradient_offset,
+        },
 }
 
 draw_variants! {
@@ -270,6 +453,20 @@ draw_variants! {
 }
 
 draw_variants! {
+    fn capped_line(start: Vec2, end: Vec2, thickness: f32, color: Color) {
+        screen {
+            draw(Line2D::new(start, end, thickness, color).with_caps());
+        }
+        world {
+            let line = Line2D::new(start, end, thickness, color).with_caps();
+            if line.is_visible_in_world() {
+                draw_world(line);
+            }
+        }
+    }
+}
+
+draw_variants! {
     fn path(points: &[Vec2], thickness: f32, color: Color) {
         screen { points.windows(2).for_each(|p| draw_line(p[0], p[1], thickness, color)); }
         world  { points.windows(2).for_each(|p| draw_line_world(p[0], p[1], thickness, color)); }
@@ -277,76 +474,9 @@ draw_variants! {
 }
 
 draw_variants! {
-    fn tri_outline(a: Vec2, b: Vec2, c: Vec2, thickness: f32, color: Color) {
-        screen {
-            draw_line(a, b, thickness, color);
-            draw_line(b, c, thickness, color);
-            draw_line(c, a, thickness, color);
-            let r = thickness / 2.0;
-            draw_circle(a, r, color); draw_circle(b, r, color); draw_circle(c, r, color);
-        }
-        world {
-            draw_line_world(a, b, thickness, color);
-            draw_line_world(b, c, thickness, color);
-            draw_line_world(c, a, thickness, color);
-            let r = thickness / 2.0;
-            draw_circle_world(a, r, color); draw_circle_world(b, r, color); draw_circle_world(c, r, color);
-        }
-    }
-}
-
-draw_variants! {
-    fn rect_outline(top_left: Vec2, size: Vec2, thickness: f32, color: Color) {
-        screen {
-            let ht = thickness / 2.0;
-            let tr = top_left + Vec2::new(size.x, 0.0);
-            let bl = top_left + Vec2::new(0.0, size.y);
-            let br = top_left + size;
-            draw_line(top_left - Vec2::new(ht, 0.0), tr + Vec2::new(ht, 0.0),           thickness, color);
-            draw_line(tr + Vec2::new(0.0, -ht),      br + Vec2::new(0.0, ht),             thickness, color);
-            draw_line(br + Vec2::new(ht, 0.0),       bl - Vec2::new(ht, 0.0),             thickness, color);
-            draw_line(bl + Vec2::new(0.0, ht),       top_left - Vec2::new(0.0, -ht),      thickness, color);
-        }
-        world {
-            let ht = thickness / 2.0;
-            let tr = top_left + Vec2::new(size.x, 0.0);
-            let bl = top_left + Vec2::new(0.0, size.y);
-            let br = top_left + size;
-            draw_line_world(top_left - Vec2::new(ht, 0.0), tr + Vec2::new(ht, 0.0),      thickness, color);
-            draw_line_world(tr + Vec2::new(0.0, -ht),      br + Vec2::new(0.0, ht),       thickness, color);
-            draw_line_world(br + Vec2::new(ht, 0.0),       bl - Vec2::new(ht, 0.0),       thickness, color);
-            draw_line_world(bl + Vec2::new(0.0, ht),       top_left - Vec2::new(0.0,-ht), thickness, color);
-        }
-    }
-}
-
-draw_variants! {
-    fn square_outline(top_left: Vec2, size: f32, thickness: f32, color: Color) {
-        screen { draw_rect_outline(top_left, Vec2::splat(size), thickness, color); }
-        world  { draw_rect_outline_world(top_left, Vec2::splat(size), thickness, color); }
-    }
-}
-
-draw_variants! {
-    fn poly_outline(center: Vec2, sides: usize, radius: f32, rotation: f32, thickness: f32, color: Color) {
-        screen {
-            let points = Poly { sides, radius, center, rotation, color }.gen_points();
-            let ht = thickness / 2.0;
-            for i in 0..points.len() {
-                let (s, e) = (points[i], points[(i + 1) % points.len()]);
-                let dir = (e - s).normalize();
-                draw_line(s - dir * ht, e + dir * ht, thickness, color);
-            }
-        }
-        world {
-            let points = Poly { sides, radius, center, rotation, color }.gen_points();
-            let ht = thickness / 2.0;
-            for i in 0..points.len() {
-                let (s, e) = (points[i], points[(i + 1) % points.len()]);
-                let dir = (e - s).normalize();
-                draw_line_world(s - dir * ht, e + dir * ht, thickness, color);
-            }
-        }
+    fn connected_path(points: &[Vec2], thickness: f32, color: Color) {
+        screen { points.windows(2).for_each(|p| draw_capped_line(p[0], p[1], thickness, color)); }
+        world  { points.windows(2).for_each(|p| draw_capped_line_world(p[0], p[1], thickness, color)); }
     }
 }
 
@@ -482,7 +612,7 @@ fn line_gradient_vertices(
         color: Color::TRANSPARENT,
         rot: 0.0,
     }
-    .points(0)
+    .gen_mesh(0)
     .1
     .into_iter()
     .zip([c_start_right, c_end_right, c_start_left, c_end_left])
@@ -620,7 +750,6 @@ macro_rules! gen_radial_gradient_variants {
     };
 
     (@shape $name:ident, $radius_param:ident: $radius_ty:ty, $radius_expr:expr) => {
-        // no outline, no offset
         gen_radial_gradient_variants!(@emit $name, $radius_param: $radius_ty, $radius_expr,
             fn_suffix:      [],
             outline_params: [],
@@ -629,7 +758,6 @@ macro_rules! gen_radial_gradient_variants {
             offset_val:     [Vec2::ZERO],
             vis_radius:     [$radius_expr]
         );
-        // outline only
         gen_radial_gradient_variants!(@emit $name, $radius_param: $radius_ty, $radius_expr,
             fn_suffix:      [_with_outline],
             outline_params: [outline_thickness: f32, outline_color: Color],
@@ -638,7 +766,6 @@ macro_rules! gen_radial_gradient_variants {
             offset_val:     [Vec2::ZERO],
             vis_radius:     [$radius_expr + Vec2::splat(outline_thickness)]
         );
-        // offset only
         gen_radial_gradient_variants!(@emit $name, $radius_param: $radius_ty, $radius_expr,
             fn_suffix:      [_offset],
             outline_params: [],
@@ -647,7 +774,6 @@ macro_rules! gen_radial_gradient_variants {
             offset_val:     [gradient_offset],
             vis_radius:     [$radius_expr]
         );
-        // outline + offset
         gen_radial_gradient_variants!(@emit $name, $radius_param: $radius_ty, $radius_expr,
             fn_suffix:      [_with_outline_offset],
             outline_params: [outline_thickness: f32, outline_color: Color],
@@ -678,18 +804,21 @@ macro_rules! gen_radial_gradient_variants {
                     $($offset_param: $offset_ty,)*
                 ) {
                     screen {
-                        draw_queue_2d().add_radial_gradient(
-                            center, $radius_expr, inner, outer,
-                            $outline_thickness_val, $outline_color_val, $offset_val,
-                        );
+                        RadialGradient {
+                            center, radius: $radius_expr, inner_color: inner, outer_color: outer,
+                            outline_thickness: $outline_thickness_val, outline_color: $outline_color_val,
+                            gradient_offset: $offset_val,
+                        }.draw();
                     }
                     world {
-                        let shape = Circle { center, radius: $vis_radius, color: outer };
+                        let shape = RadialGradient {
+                            center, radius: $radius_expr, inner_color: inner, outer_color: outer,
+                            outline_thickness: $outline_thickness_val, outline_color: $outline_color_val,
+                            gradient_offset: $offset_val,
+                        };
+
                         if shape.bounds().is_visible_in_world() {
-                            world_draw_queue_2d().add_radial_gradient(
-                                center, $radius_expr, inner, outer,
-                                $outline_thickness_val, $outline_color_val, $offset_val,
-                            );
+                            shape.draw_world();
                         }
                     }
                 }
@@ -735,4 +864,40 @@ impl ToCollider<Polygon> for CustomShape {
             vertices: self.points.clone(),
         }
     }
+}
+
+fn draw_square_outline_path(
+    points: &[Vec2],
+    color: Color,
+    thickness: f32,
+    draw_queue: &mut DrawQueue2D,
+) {
+    points.array_windows().for_each(|[a, b]| {
+        draw_queue.add_shape(&Line2D::new(*a, *b, thickness, color).with_caps());
+    });
+
+    draw_queue
+        .add_shape(&Line2D::new(points[points.len() - 1], points[0], thickness, color).with_caps());
+}
+
+fn draw_circle_outline_path(
+    points: &[Vec2],
+    thickness: f32,
+    color: Color,
+    draw_queue: &mut DrawQueue2D,
+) {
+    points
+        .iter()
+        .for_each(|p| draw_queue.add_circle(*p, Vec2::splat(thickness / 2.0), color));
+
+    points.array_windows().for_each(|[a, b]| {
+        draw_queue.add_shape(&Line2D::new(*a, *b, thickness, color));
+    });
+
+    draw_queue.add_shape(&Line2D::new(
+        points[points.len() - 1],
+        points[0],
+        thickness,
+        color,
+    ));
 }

@@ -1,3 +1,5 @@
+use std::f32::consts::TAU;
+
 use sge::prelude::*;
 
 fn random_rect() -> Rect {
@@ -6,7 +8,7 @@ fn random_rect() -> Rect {
     let size: Vec2 = rand::<Vec2>() * sf;
     let color: Color = random_color();
 
-    Rect::from_center(center, size, color)
+    Rect::from_center(center, size, color).with_rotation(rand::<f32>() * TAU)
 }
 
 fn main() -> anyhow::Result<()> {

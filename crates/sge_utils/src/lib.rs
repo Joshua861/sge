@@ -1,4 +1,4 @@
-use std::ops::{Index, IndexMut};
+use std::ops::{Add, Index, IndexMut, Mul, Sub};
 
 pub struct RotatingArray<T, const N: usize> {
     n: usize,
@@ -42,6 +42,10 @@ impl<T, const N: usize> RotatingArray<T, N> {
     pub fn len(&self) -> usize {
         N
     }
+
+    pub fn is_empty(&self) -> bool {
+        N == 0
+    }
 }
 
 impl<T, const N: usize> IntoIterator for RotatingArray<T, N> {
@@ -64,5 +68,38 @@ impl<T, const N: usize> Index<usize> for RotatingArray<T, N> {
 impl<T, const N: usize> IndexMut<usize> for RotatingArray<T, N> {
     fn index_mut(&mut self, n: usize) -> &mut Self::Output {
         self.get_mut(n)
+    }
+}
+
+pub trait Lerpable:
+    Add<Self, Output = Self> + Sub<Self, Output = Self> + Mul<f32, Output = Self> + Sized + Copy
+{
+    fn lerp(self, other: Self, progress: f32) -> Self {
+        self + (other - self) * progress
+    }
+}
+
+impl<T> Lerpable for T where
+    T: Add<Self, Output = Self> + Sub<Self, Output = Self> + Mul<f32, Output = Self> + Sized + Copy
+{
+}
+
+pub struct Lerped<T: Lerpable> {
+    start: T,
+    end: T,
+}
+
+impl<T: Lerpable> Lerped<T> {
+    pub fn new(start: T, end: T) -> Lerped<T> {
+        Lerped { start, end }
+    }
+
+    pub fn value(&self, progress: f32) -> T {
+        self.start.lerp(self.end, progress)
+    }
+
+    pub fn now_offset_towards(&mut self, new_end: T) {
+        self.start = self.end;
+        self.end = new_end;
     }
 }

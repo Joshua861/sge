@@ -23,7 +23,7 @@ pub use sge_shapes::d2 as shapes_2d;
 use sge_time::frames_since_input;
 use sge_window::{get_display, get_window_state, window_size, window_size_u32};
 
-const WAIT_FOR_EVENTS_EXTRA_FRAME_DRAWS: usize = 60 * 5; // stops rendering after 5 seconds of no input, when config.wait_for_events is true
+const WAIT_FOR_EVENTS_EXTRA_FRAME_DRAWS: usize = 60 * 5; // stops rendering after 300 frames of no input, when config.wait_for_events is true
 
 pub mod api;
 pub mod prelude;
@@ -40,6 +40,7 @@ pub enum InitError {
     WindowCreation(sge_window::WindowCreationError),
     Program(glium::ProgramCreationError),
     Audio(tunes::error::TunesError),
+    Gilrs(sge_input::GilrsError),
 }
 
 #[allow(unused_mut)]
@@ -69,7 +70,7 @@ pub fn init_custom(mut opts: Opts) -> Result<(), InitError> {
     sge_time::init();
     sge_config::init(opts.config);
     get_window_state().window.request_redraw();
-    sge_input::init();
+    sge_input::init()?;
     sge_camera::init(size.width, size.height);
     sge_egui::init();
     sge_debugging::init();

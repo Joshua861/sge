@@ -11,12 +11,10 @@ use sge_shapes::d2::{Circle, Rect};
 use sge_time::time;
 
 pub trait Animatable {
-    /// progress ranges from 0 (animation start) to 1 (animation end)
     fn lerp(a: Self, b: Self, progress: f32) -> Self;
 }
 
 pub trait EasingFunction {
-    /// t ranges from 0 (animation start) to 1 (animation end)
     fn progress(&self, t: f32) -> f32;
 }
 
@@ -29,7 +27,6 @@ pub struct AnimationController<T: Animatable, E: EasingFunction> {
 }
 
 impl<T: Animatable + Copy, E: EasingFunction> AnimationController<T, E> {
-    /// Length is in seconds
     pub fn new(start: T, end: T, length: f32, easing_function: E) -> Self {
         Self {
             start,
@@ -150,9 +147,6 @@ impl Animatable for Transform3D {
     }
 }
 
-/// # Panics
-///
-/// Will panic if `self` or `end` are not normalized when `glam_assert` is enabled.
 impl Animatable for Quat {
     fn lerp(a: Self, b: Self, progress: f32) -> Self {
         a.slerp(b, progress)

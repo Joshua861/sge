@@ -1,7 +1,11 @@
 #![feature(unsafe_cell_access)]
 #![allow(clippy::new_ret_no_self)]
 
-use std::{collections::HashMap, fmt::Debug};
+use std::{
+    collections::HashMap,
+    fmt::Debug,
+    ops::{Deref, DerefMut},
+};
 
 use base::Empty;
 use bevy_math::Vec2;
@@ -79,6 +83,20 @@ impl UiState {
 
 pub struct SomeNode {
     node: Box<dyn UiNode>,
+}
+
+impl Deref for SomeNode {
+    type Target = dyn UiNode;
+
+    fn deref(&self) -> &Self::Target {
+        &*self.node
+    }
+}
+
+impl DerefMut for SomeNode {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut *self.node
+    }
 }
 
 gen_ref_type!(SomeNode, UiRef, ui_nodes);

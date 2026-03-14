@@ -20,3 +20,6 @@ pub use card::*;
 
 pub mod loading_bar;
 pub use loading_bar::*;
+
+pub mod input;
+pub use input::*;

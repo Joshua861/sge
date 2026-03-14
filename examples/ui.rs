@@ -1,3 +1,5 @@
+use std::mem::MaybeUninit;
+
 use sge::prelude::*;
 use ui::prelude::*;
 
@@ -9,6 +11,15 @@ fn main() -> anyhow::Result<()> {
     let mut progress: f32 = rand();
     let mut show_message = false;
     let mut clear_color = w95::PRIMARY;
+
+    let node = Text::title("Hello");
+    println!(
+        "Measured: {}\nDrawn: {}",
+        node.size(Area::new(Vec2::ZERO, window_size())),
+        node.draw(Area::new(Vec2::ZERO, window_size()), unsafe {
+            MaybeUninit::zeroed().assume_init()
+        }),
+    );
 
     loop {
         clear_screen(clear_color);
@@ -202,11 +213,18 @@ fn flat_window() -> UiRef {
         .map(|(i, p)| flat::LoadingBar::new_with_speed(p.v400, i as f32 * 10.0 + 10.0).height(30.0))
         .collect();
 
+    let input_id = id!();
+
+    if text_input_changed(input_id) {
+        println!("{}", text_input_value(input_id));
+    }
+
     Card::bg0_expand(FlexCol::with_gap(
         10.0,
         [
             FlexBox::Flex(Col::with_gap(10.0, bars).scroll(id!())),
-            FlexBox::Fixed(Text::new("Hello world.")),
+            FlexBox::Fixed(TextInput::with_prompt(BG2, "Start typing...", input_id)),
+            // FlexBox::Fixed(Text::new("Hello world.")),
         ],
     ))
 }

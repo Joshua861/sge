@@ -48,7 +48,7 @@ pub use gradient_fill::*;
 pub use grid::*;
 pub use hoverable::*;
 pub use image::*;
-pub use input::*;
+pub use input::{TextInput, text_input_changed, text_input_value};
 pub use loading_bar::*;
 pub use padding::*;
 pub use progress_bar::*;

@@ -8,6 +8,8 @@ pub struct Camera2D {
     pub translation: Vec2,
     pub scale: f32,
     pub rotation: f32,
+    /// for temporary translation, like screenshake
+    pub offset: Vec2,
 
     window_size: Vec2,
 
@@ -22,6 +24,7 @@ impl Camera2D {
     pub fn new(window_width: u32, window_height: u32) -> Self {
         let mut camera = Self {
             translation: Vec2::ZERO,
+            offset: Vec2::ZERO,
             scale: 1.0,
             rotation: 0.0,
             window_size: Vec2::new(window_width as f32, window_height as f32),
@@ -56,7 +59,7 @@ impl Camera2D {
 
         self.needs_update = false;
 
-        let translation_matrix = Mat3::from_translation(-self.translation);
+        let translation_matrix = Mat3::from_translation(-self.translation - self.offset);
         let rotation_matrix = Mat3::from_angle(-self.rotation);
         let scale_matrix = Mat3::from_scale(Vec2::splat(self.scale));
 

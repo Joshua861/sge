@@ -8,6 +8,15 @@ use quote::quote;
 use syn::parse::Parse;
 use syn::{Expr, Ident, LitStr, Token, Visibility, parse_macro_input};
 
+mod shape_variants;
+
+#[proc_macro]
+pub fn draw_shape_variants(input: TokenStream) -> TokenStream {
+    shape_variants::expand(input.into())
+        .unwrap_or_else(|e| e.to_compile_error())
+        .into()
+}
+
 struct Actions {
     actions: Vec<Action>,
 }

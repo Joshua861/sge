@@ -3,7 +3,7 @@ use error_union::ErrorUnion;
 use glium::{
     IndexBuffer, Program, Surface, VertexBuffer,
     framebuffer::SimpleFrameBuffer,
-    texture::{DepthTexture2d, Texture2d, TextureCreationError},
+    texture::{Texture2d, TextureCreationError},
     uniform,
 };
 use sge_color::Color;

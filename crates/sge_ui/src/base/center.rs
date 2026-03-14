@@ -1,3 +1,5 @@
+use bevy_math::VectorSpace;
+
 use super::*;
 
 #[derive(Debug)]
@@ -39,6 +41,20 @@ impl Center {
 impl UiNode for Center {
     fn preferred_dimensions(&self) -> Vec2 {
         self.child.node.preferred_dimensions()
+    }
+
+    fn size(&self, area: Area) -> Vec2 {
+        let mut size = Vec2::ZERO;
+
+        if self.horizontal {
+            size.x = area.size.x;
+        }
+
+        if self.vertical {
+            size.y = area.size.y;
+        }
+
+        size
     }
 
     fn draw(&self, mut area: Area, ui: &UiState) -> Vec2 {

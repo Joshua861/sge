@@ -9,4 +9,7 @@ glium.workspace = true
 global = { version = "0.1.0", path = "../global" }
 log.workspace = true
 sge_input.workspace = true
+sge_rng = { version = "0.1.0", path = "../sge_rng" }
+sge_time = { version = "0.1.0", path = "../sge_time" }
+sge_utils = { version = "0.1.0", path = "../sge_utils" }
 sge_window = { version = "0.1.0", path = "../sge_window" }

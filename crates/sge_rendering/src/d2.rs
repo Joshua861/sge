@@ -177,7 +177,7 @@ impl DrawQueue2D {
 
         self.ensure_shape_batch();
 
-        let (mut indices, vertices) = shape.points(self.current_shape_batch.max_index);
+        let (mut indices, vertices) = shape.gen_mesh(self.current_shape_batch.max_index);
 
         for vertex in &vertices {
             self.current_shape_batch.vertices.push(vertex.to_3d(z));

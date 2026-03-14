@@ -150,20 +150,17 @@ pub fn draw_wrapped_text_in_area(
 
     let mut y_offset = 0.0;
     let line_height = font_size as f32 * line_spacing;
+    let mut max_width: f32 = 0.0;
 
     for line in &wrapped_lines {
         let mut line_params = params;
         line_params.position = area.top_left() + Vec2::new(0.0, y_offset);
-
-        draw_text_ex(line, line_params);
+        let line_size = draw_text_ex(line, line_params).size;
+        max_width = max_width.max(line_size.x);
         y_offset += line_height;
-
-        if y_offset > area.height() {
-            break;
-        }
     }
 
-    Vec2::new(area.width(), y_offset)
+    Vec2::new(max_width, y_offset)
 }
 
 pub fn measure_wrapped_text(

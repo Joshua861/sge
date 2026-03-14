@@ -6,7 +6,7 @@ use sge_types::Vertex2D;
 use std::f32::consts::TAU;
 
 pub trait Shape2D: HasBounds2D + DynClone {
-    fn points(&self, starting_index: u32) -> (Vec<u32>, Vec<Vertex2D>);
+    fn gen_mesh(&self, starting_index: u32) -> (Vec<u32>, Vec<Vertex2D>);
     fn is_visible_in_world(&self) -> bool {
         self.bounds().is_visible_in_world()
     }
@@ -24,7 +24,7 @@ pub struct Circle {
 }
 
 impl Shape2D for Circle {
-    fn points(&self, _starting_index: u32) -> (Vec<u32>, Vec<Vertex2D>) {
+    fn gen_mesh(&self, _starting_index: u32) -> (Vec<u32>, Vec<Vertex2D>) {
         unimplemented!();
     }
 
@@ -72,33 +72,34 @@ impl Circle {
 }
 
 #[derive(Clone, Copy, Debug)]
-pub struct CircleOutline {
+pub struct CircleWithOutline {
     pub center: Vec2,
     pub radius: Vec2,
-    pub color: Color,
-    pub thickness: f32,
+    pub outline_color: Color,
+    pub outline_thickness: f32,
+    pub fill_color: Color,
 }
 
-impl HasBounds2D for CircleOutline {
+impl HasBounds2D for CircleWithOutline {
     fn bounds(&self) -> Aabb2d {
-        let total_radius = self.radius + Vec2::splat(self.thickness);
+        let total_radius = self.radius + Vec2::splat(self.outline_thickness);
         Aabb2d::from_center_size(self.center, total_radius * 2.0)
     }
 }
 
-impl Shape2D for CircleOutline {
-    fn points(&self, _starting_index: u32) -> (Vec<u32>, Vec<Vertex2D>) {
+impl Shape2D for CircleWithOutline {
+    fn gen_mesh(&self, _starting_index: u32) -> (Vec<u32>, Vec<Vertex2D>) {
         unimplemented!();
     }
 
     fn set_rotation(&mut self, _: f32) {}
 
     fn set_color(&mut self, color: Color) {
-        self.color = color;
+        self.outline_color = color;
     }
 
     fn get_color(&self) -> Color {
-        self.color
+        self.outline_color
     }
 
     fn set_pos(&mut self, pos: Vec2) {
@@ -123,7 +124,7 @@ impl HasBounds2D for RoundedRectangle {
 }
 
 impl Shape2D for RoundedRectangle {
-    fn points(&self, _: u32) -> (Vec<u32>, Vec<Vertex2D>) {
+    fn gen_mesh(&self, _: u32) -> (Vec<u32>, Vec<Vertex2D>) {
         unimplemented!();
     }
 
@@ -271,16 +272,14 @@ impl Rect {
         Self::from_center(center, Vec2::splat(size), color)
     }
 
-    fn gen_quad(&self) -> Vec<Vertex2D> {
+    pub fn points(&self) -> [Vec2; 4] {
         if self.rot == 0.0 {
             let tl = self.top_left;
             let br = self.top_left + self.size;
             let tr = vec2(br.x, tl.y);
             let bl = vec2(tl.x, br.y);
 
-            [tl, tr, bl, br]
-                .map(|v| Vertex2D::new(v.x, v.y, self.color))
-                .to_vec()
+            [tl, tr, br, bl]
         } else {
             let rot = self.rot;
             let half_size = self.size / 2.0;
@@ -288,18 +287,39 @@ impl Rect {
             let x = half_size.x;
             let y = half_size.y;
 
-            [vec2(-x, -y), vec2(x, -y), vec2(-x, y), vec2(x, y)]
-                .map(|v| {
-                    let v = mat.transform_point2(v);
-                    Vertex2D::new(v.x, v.y, self.color)
-                })
-                .to_vec()
+            [vec2(-x, -y), vec2(x, -y), vec2(x, y), vec2(-x, y)].map(|v| mat.transform_point2(v))
         }
+    }
+
+    pub fn tri_points(&self) -> [Vec2; 4] {
+        if self.rot == 0.0 {
+            let tl = self.top_left;
+            let br = self.top_left + self.size;
+            let tr = vec2(br.x, tl.y);
+            let bl = vec2(tl.x, br.y);
+
+            [tl, tr, bl, br]
+        } else {
+            let rot = self.rot;
+            let half_size = self.size / 2.0;
+            let mat = Mat3::from_translation(self.top_left + half_size) * Mat3::from_angle(rot);
+            let x = half_size.x;
+            let y = half_size.y;
+
+            [vec2(-x, -y), vec2(x, -y), vec2(-x, y), vec2(x, y)].map(|v| mat.transform_point2(v))
+        }
+    }
+
+    pub fn gen_quad(&self) -> Vec<Vertex2D> {
+        self.tri_points()
+            .iter()
+            .map(|p| Vertex2D::new(p.x, p.y, self.color))
+            .collect()
     }
 }
 
 impl Shape2D for Rect {
-    fn points(&self, starting_index: u32) -> (Vec<u32>, Vec<Vertex2D>) {
+    fn gen_mesh(&self, starting_index: u32) -> (Vec<u32>, Vec<Vertex2D>) {
         let quad = self.gen_quad();
         let indices = QUAD_INDICES.map(|n| n + starting_index).to_vec();
         (indices, quad)
@@ -330,6 +350,10 @@ pub struct Triangle {
 }
 
 impl Triangle {
+    pub fn points(&self) -> [Vec2; 3] {
+        self.rotated_points()
+    }
+
     pub fn new(points: [Vec2; 3], color: Color) -> Self {
         Self {
             points,
@@ -369,7 +393,7 @@ impl HasBounds2D for Triangle {
 }
 
 impl Shape2D for Triangle {
-    fn points(&self, starting_index: u32) -> (Vec<u32>, Vec<Vertex2D>) {
+    fn gen_mesh(&self, starting_index: u32) -> (Vec<u32>, Vec<Vertex2D>) {
         let tri = self
             .rotated_points()
             .map(|p| Vertex2D::new(p.x, p.y, self.color));
@@ -440,6 +464,18 @@ impl Line2D {
             mat.transform_point2(self.end),
         )
     }
+
+    pub fn with_caps(mut self) -> Self {
+        self.add_caps();
+        self
+    }
+
+    pub fn add_caps(&mut self) {
+        let dir = (self.end - self.start).normalize();
+        let half = dir * self.thickness / 2.0;
+        self.start -= half;
+        self.end += half;
+    }
 }
 
 impl HasBounds2D for Line2D {
@@ -484,7 +520,7 @@ impl Line2D {
 }
 
 impl Shape2D for Line2D {
-    fn points(&self, starting_index: u32) -> (Vec<u32>, Vec<Vertex2D>) {
+    fn gen_mesh(&self, starting_index: u32) -> (Vec<u32>, Vec<Vertex2D>) {
         if let Some(mesh) = self.gen_mesh() {
             (QUAD_INDICES.map(|n| n + starting_index).to_vec(), mesh)
         } else {
@@ -549,7 +585,7 @@ impl Poly {
 }
 
 impl Shape2D for Poly {
-    fn points(&self, starting_index: u32) -> (Vec<u32>, Vec<Vertex2D>) {
+    fn gen_mesh(&self, starting_index: u32) -> (Vec<u32>, Vec<Vertex2D>) {
         let (vertices, indices) = self.gen_mesh();
         let indices = indices.iter().map(|n| n + starting_index).collect();
         (indices, vertices)
@@ -597,7 +633,7 @@ impl HasBounds2D for CustomShape {
 }
 
 impl Shape2D for CustomShape {
-    fn points(&self, starting_index: u32) -> (Vec<u32>, Vec<Vertex2D>) {
+    fn gen_mesh(&self, starting_index: u32) -> (Vec<u32>, Vec<Vertex2D>) {
         let (vertices, indices) = gen_mesh_from_points(&self.points, self.color);
         let indices = indices.iter().map(|n| n + starting_index).collect();
         (indices, vertices)
@@ -623,6 +659,43 @@ impl Shape2D for CustomShape {
             *point += offset;
         }
     }
+}
+
+#[derive(Clone, Debug)]
+pub struct RadialGradient {
+    pub center: Vec2,
+    pub radius: Vec2,
+    pub inner_color: Color,
+    pub outer_color: Color,
+    pub outline_thickness: f32,
+    pub outline_color: Color,
+    pub gradient_offset: Vec2,
+}
+
+impl HasBounds2D for RadialGradient {
+    fn bounds(&self) -> Aabb2d {
+        Aabb2d::from_center_size(self.center, self.radius * 2.0)
+    }
+}
+
+impl Shape2D for RadialGradient {
+    fn gen_mesh(&self, _starting_index: u32) -> (Vec<u32>, Vec<Vertex2D>) {
+        unimplemented!()
+    }
+
+    fn get_color(&self) -> Color {
+        self.inner_color
+    }
+
+    fn set_color(&mut self, color: Color) {
+        self.inner_color = color;
+    }
+
+    fn set_pos(&mut self, pos: Vec2) {
+        self.center = pos;
+    }
+
+    fn set_rotation(&mut self, _angle: f32) {}
 }
 
 pub const QUAD_INDICES: [u32; 6] = [0, 1, 2, 1, 2, 3];

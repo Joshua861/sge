@@ -20,6 +20,10 @@ impl UiNode for CircleFill {
         vec2(50.0, 50.0)
     }
 
+    fn size(&self, area: Area) -> Vec2 {
+        area.size
+    }
+
     fn draw(&self, area: Area, _: &UiState) -> Vec2 {
         Circle::from_top_left(area.top_left, area.size / 2.0, self.color).draw();
 

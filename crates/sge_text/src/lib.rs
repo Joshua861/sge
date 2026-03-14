@@ -54,6 +54,12 @@ pub struct Glyph {
 
 gen_ref_type!(SgeFont, FontRef, fonts);
 
+impl Default for FontRef {
+    fn default() -> Self {
+        MONO
+    }
+}
+
 pub struct TextMeasureCache {
     map: HashMap<(u32, String), Vec2>,
 }

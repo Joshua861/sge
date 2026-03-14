@@ -69,7 +69,14 @@ fn main() -> anyhow::Result<()> {
                     },
                 );
             } else {
-                draw_text(&text, position);
+                let dimensions = draw_text(&text, position);
+                if toggle_every_n_seconds(1.0) {
+                    draw_rect(
+                        position + vec2(dimensions.size.x, 0.0),
+                        Vec2::new(2.0, dimensions.size.y),
+                        Color::NEUTRAL_200,
+                    );
+                }
             }
 
             draw_circle_world(Vec2::ZERO, 20.0, Color::RED_300);

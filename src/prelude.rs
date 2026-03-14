@@ -22,7 +22,7 @@ pub use glium::{
     },
 };
 pub use image::{self, ImageFormat};
-pub use include_folder::include_folder;
+pub use include_assets::include_assets;
 pub use log::{self, Level, LevelFilter, debug, error, info, trace, warn};
 pub use sge_animation::*;
 pub use sge_api::area::AreaExt;
@@ -31,6 +31,7 @@ pub use sge_api::{Drawable, draw, draw_world};
 pub use sge_audio::{audio, play_sound};
 pub use sge_camera::controllers::orbit::OrbitCameraController;
 pub use sge_camera::controllers::pan::PanningCameraController;
+pub use sge_camera::controllers::shake::CameraShakeController;
 pub use sge_camera::{
     camera2d_zoom_at, cameras_for_resolution, get_camera_2d, get_camera_3d, get_flat_projection,
     mutate_camera_2d, mutate_camera_3d, screen_to_world, world_to_screen,
@@ -53,16 +54,16 @@ pub use sge_debugging::{
 pub use sge_egui::egui_glium::egui_winit::egui;
 pub use sge_egui::run_egui;
 pub use sge_image::{Image, ImageRef};
-pub use sge_input::keys::KeyToString;
 pub use sge_input::{
     Action, Button, Input, action_held, action_pressed, action_pressed_os, action_released, bind,
     bind_button, bind_key, bind_mouse, button_held, button_pressed, button_released,
     close_requested, cursor, cursor_diff, cursor_movements, cursor_prev, destroyed, dropped_file,
-    gamepad_input, get_all_binds, get_binding, get_input, get_key_binding, get_mouse_binding,
+    gamepad::GamepadExt, get_all_binds, get_binding, get_input, get_key_binding, get_mouse_binding,
     held_alt, held_control, held_shift, input_text, key_held, key_held_logical, key_pressed,
     key_pressed_logical, key_pressed_os, key_pressed_os_logical, key_released,
-    key_released_logical, last_cursor_pos, mouse_diff, mouse_held, mouse_pressed, mouse_released,
-    resolution, scale_factor, scale_factor_changed, scroll_diff, should_quit, window_resized,
+    key_released_logical, keys::KeyToString, last_cursor_pos, mouse_diff, mouse_held,
+    mouse_pressed, mouse_released, resolution, scale_factor, scale_factor_changed, scroll_diff,
+    should_quit, window_resized,
 };
 pub use sge_logging::{
     Logger, draw_logs, log_lines, log_to_file, set_logger_verbosity, set_max_drawn_log_lines,
@@ -120,7 +121,7 @@ pub use sge_time::{
     delta_time, frame_count, frames_since_input, is_first_frame, is_physics_time_paused,
     is_physics_time_paused_mut, once_per_n_seconds, once_per_second, pause_physics_timer,
     physics_delta_time, physics_speed, physics_speed_mut, physics_time, play_physics_timer,
-    set_physics_speed, time, time_seconds, toggle_physics_timer,
+    set_physics_speed, time, time_seconds, toggle_every_n_seconds, toggle_physics_timer,
 };
 pub use sge_types::{
     Area, BufferError, MaterialVertex3D, SpriteVertex, TexturedVertex2D, Verbosity, Vertex2D,
@@ -135,3 +136,8 @@ pub use sge_window::{
 };
 pub use si;
 pub use tunes;
+pub mod gamepad {
+    pub use sge_input::gamepad_input as input;
+    pub use sge_input::gilrs::*;
+}
+pub use sge_math::Vec2Ext;

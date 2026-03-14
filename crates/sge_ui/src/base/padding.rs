@@ -158,10 +158,7 @@ impl UiNode for Padding {
     }
 
     fn size(&self, area: Area) -> Vec2 {
-        let mut inner = area;
-        inner.size -= self.extra_size();
-        inner.top_left += self.offset();
-        self.child.node.size(inner) + self.extra_size()
+        area.size
     }
 
     fn draw(&self, mut area: Area, state: &UiState) -> Vec2 {
